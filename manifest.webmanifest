@@ -1,0 +1,10 @@
+{
+  "name": "Feedback Portal | Kumpan",
+  "short_name": "Feedback",
+  "description": "Kumpan Feedback Portal, built by the lovely people at Kumpan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#D0CEFF",
+  "theme_color": "#D0CEFF",
+  "icons": []
+}

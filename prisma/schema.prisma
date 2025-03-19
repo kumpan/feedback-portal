@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SurveyResponse {
+  id              Int      @id @default(autoincrement())
+  nps             Int
+  satisfaction    Int
+  communication   Int
+  whatWeDidWell   String?  @db.Text
+  whatWeCanImprove String? @db.Text
+  createdAt       DateTime @default(now())
+}
