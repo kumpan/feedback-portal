@@ -1,47 +1,156 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
-import { Prisma } from "@prisma/client";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-
-async function submitSurvey(data: FormData) {
-  "use server";
-
-  const nps = data.get("nps")?.toString();
-  const satisfaction = data.get("satisfaction")?.toString();
-  const communication = data.get("communication")?.toString();
-  const whatWeDidWell = data.get("whatWeDidWell")?.toString() || "";
-  const whatWeCanImprove = data.get("whatWeCanImprove")?.toString() || "";
-
-  if (!nps || !satisfaction || !communication) {
-    throw new Error("Please fill out all rating questions.");
-  }
-
-  const surveyData: Prisma.SurveyResponseCreateInput = {
-    nps: parseInt(nps),
-    satisfaction: parseInt(satisfaction),
-    communication: parseInt(communication),
-    whatWeDidWell,
-    whatWeCanImprove,
-  };
-
-  await prisma.surveyResponse.create({
-    data: surveyData,
-  });
-
-  revalidatePath("/dashboard");
-  redirect("/tack");
-}
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const code = searchParams.get("code");
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [surveyLink, setSurveyLink] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    nps: "",
+    satisfaction: "",
+    communication: "",
+    whatWeDidWell: "",
+    whatWeCanImprove: "",
+  });
+
+  useEffect(() => {
+    const storedCode = localStorage.getItem("surveyCode");
+
+    if (code) {
+      localStorage.setItem("surveyCode", code);
+
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+
+      fetchSurveyLink(code);
+    } else if (storedCode) {
+      fetchSurveyLink(storedCode);
+    } else {
+      setIsLoading(false);
+    }
+  }, [code]);
+
+  const fetchSurveyLink = async (codeToFetch: string) => {
+    try {
+      const response = await fetch(`/api/survey-links?code=${codeToFetch}`);
+      if (!response.ok) {
+        throw new Error("Invalid survey link");
+      }
+
+      const data = await response.json();
+      setSurveyLink(data.surveyLink);
+
+      if (data.surveyLink.response?.completed) {
+        setError(
+          "You have already submitted this survey. You can update your responses if you wish."
+        );
+      }
+    } catch (err) {
+      setError("The survey link is invalid or has expired");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const storedCode = localStorage.getItem("surveyCode");
+      let linkId = surveyLink?.id;
+
+      if (surveyLink && surveyLink.id) {
+        linkId = surveyLink.id;
+      }
+
+      const response = await fetch("/api/survey-responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          linkId,
+          code: storedCode,
+          nps: parseInt(formData.nps),
+          satisfaction: parseInt(formData.satisfaction),
+          communication: parseInt(formData.communication),
+          whatWeDidWell: formData.whatWeDidWell,
+          whatWeCanImprove: formData.whatWeCanImprove,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit survey");
+      }
+
+      router.push("/tack");
+    } catch (err) {
+      setError("An error occurred while submitting the survey");
+      console.error(err);
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p>Loading survey...</p>
+      </main>
+    );
+  }
+
+  if (error && error.includes("invalid or has expired")) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 max-w-md">
+          <h1 className="text-2xl mb-4">Error</h1>
+          <p className="mb-4">{error}</p>
+          <Button onClick={() => router.push("/")}>Return Home</Button>
+        </Card>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center">
       <section className="w-full flex items-center justify-center">
         <div className="flex max-w-3xl flex-col w-full px-4 md:px-8">
           <h1 className="text-2xl mb-4">Kumpan survey</h1>
-          <form action={submitSurvey} className="space-y-4">
+          {surveyLink && (
+            <div className="mb-4">
+              <p className="text-lg">
+                Hello {surveyLink.clientName} from {surveyLink.companyName}! We
+                appreciate your feedback.
+              </p>
+            </div>
+          )}
+          {error && (
+            <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
+              <p>{error}</p>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* NPS Question (0-10) */}
             <Card className="px-4 md:px-8 py-4 md:py-8">
               <h2 className="text-xl mb-4 md:text-2xl">
@@ -61,6 +170,8 @@ export default function Home() {
                       id={`nps-${i}`}
                       className="sr-only"
                       required
+                      checked={formData.nps === i.toString()}
+                      onChange={handleInputChange}
                     />
                     <p className="text-lg md:text-xl">{i}</p>
                   </label>
@@ -84,7 +195,7 @@ export default function Home() {
                   <label
                     key={i + 1}
                     htmlFor={`sat-${i + 1}`}
-                    className="flex flex-col justify-center items-center w-full py-2 px-4 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                    className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
                   >
                     <input
                       type="radio"
@@ -93,6 +204,8 @@ export default function Home() {
                       id={`sat-${i + 1}`}
                       className="sr-only"
                       required
+                      checked={formData.satisfaction === (i + 1).toString()}
+                      onChange={handleInputChange}
                     />
                     <p className="text-lg md:text-xl">{i + 1}</p>
                   </label>
@@ -116,7 +229,7 @@ export default function Home() {
                   <label
                     key={i + 1}
                     htmlFor={`com-${i + 1}`}
-                    className="flex flex-col justify-center items-center w-full py-2 px-4 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                    className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
                   >
                     <input
                       type="radio"
@@ -125,6 +238,8 @@ export default function Home() {
                       id={`com-${i + 1}`}
                       className="sr-only"
                       required
+                      checked={formData.communication === (i + 1).toString()}
+                      onChange={handleInputChange}
                     />
                     <p className="text-lg md:text-xl">{i + 1}</p>
                   </label>
@@ -140,7 +255,12 @@ export default function Home() {
             {/* What We Did Well (Text) */}
             <Card className="px-4 md:px-8 py-4 md:py-8">
               <h2 className="text-xl mb-4 md:text-2xl">Vad gjorde vi bra?</h2>
-              <Textarea name="whatWeDidWell" placeholder="Skriv ditt svar..." />
+              <Textarea
+                name="whatWeDidWell"
+                placeholder="Skriv ditt svar..."
+                value={formData.whatWeDidWell}
+                onChange={handleInputChange}
+              />
             </Card>
 
             {/* What We Can Improve (Text) */}
@@ -151,11 +271,18 @@ export default function Home() {
               <Textarea
                 name="whatWeCanImprove"
                 placeholder="Skriv ditt svar..."
+                value={formData.whatWeCanImprove}
+                onChange={handleInputChange}
               />
             </Card>
 
-            <Button type="submit" className="w-full" size="lg">
-              Skicka
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? "Skickar..." : "Skicka"}
             </Button>
           </form>
         </div>
