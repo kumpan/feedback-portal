@@ -127,7 +127,7 @@ export default async function Dashboard({
   const surveyData = await getSurveyData(timeFrame);
 
   return (
-    <main className="w-full bg-primary-90">
+    <main className="w-full bg-background">
       <div className="flex items-center justify-center border-b">
         <div className="w-full max-w-5xl px-4 md:px-8 flex justify-between gap-4 py-4">
           <div className="h-16 w-16 bg-primary-20 rounded-xl flex items-center justify-center" />

@@ -137,7 +137,7 @@ function HomeContent() {
   return (
     <main className="min-h-screen flex items-center justify-center">
       <section className="w-full flex items-center justify-center">
-        <div className="flex max-w-3xl flex-col w-full px-4 md:px-8">
+        <div className="flex max-w-3xl flex-col w-full px-4 md:px-8 py-12 md:py-16">
           <div className="space-y-2 max-w-lg">
             <h1 className="text-4xl md:text-5xl">Hej 👋</h1>
             <p className="text-lg">
@@ -147,7 +147,7 @@ function HomeContent() {
           </div>
 
           {/* Divider */}
-          <div className="h-0.5 w-full bg-border/10 my-8" />
+          <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* NPS Question (0-10) */}
@@ -159,7 +159,7 @@ function HomeContent() {
                 <label
                   key={i}
                   htmlFor={`nps-${i}`}
-                  className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                  className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
                 >
                   <input
                     type="radio"
@@ -182,7 +182,7 @@ function HomeContent() {
             </div>
 
             {/* Divider */}
-            <div className="h-0.5 w-full bg-border/10 my-8" />
+            <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* Satisfaction Question (1-5) */}
             <h2 className="text-xl mb-4 md:text-2xl">
@@ -194,7 +194,7 @@ function HomeContent() {
                 <label
                   key={i + 1}
                   htmlFor={`sat-${i + 1}`}
-                  className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                  className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
                 >
                   <input
                     type="radio"
@@ -217,7 +217,7 @@ function HomeContent() {
             </div>
 
             {/* Divider */}
-            <div className="h-0.5 w-full bg-border/10 my-8" />
+            <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* Communication Question (1-5) */}
             <h2 className="text-xl mb-4 md:text-2xl">
@@ -229,7 +229,7 @@ function HomeContent() {
                 <label
                   key={i + 1}
                   htmlFor={`com-${i + 1}`}
-                  className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                  className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
                 >
                   <input
                     type="radio"
@@ -252,7 +252,7 @@ function HomeContent() {
             </div>
 
             {/* Divider */}
-            <div className="h-0.5 w-full bg-border/10 my-8" />
+            <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* What We Did Well (Text) */}
             <h2 className="text-xl mb-4 md:text-2xl">Vad gjorde vi bra?</h2>
@@ -264,7 +264,7 @@ function HomeContent() {
             />
 
             {/* Divider */}
-            <div className="h-0.5 w-full bg-border/10 my-8" />
+            <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* What We Can Improve (Text) */}
             <h2 className="text-xl mb-4 md:text-2xl">

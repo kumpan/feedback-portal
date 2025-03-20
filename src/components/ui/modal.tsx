@@ -59,7 +59,7 @@ export function Modal({
           <motion.div
             ref={modalRef}
             className={cn(
-              "w-full max-w-lg rounded-lg bg-background",
+              "w-full max-w-lg rounded-2xl bg-background",
               className
             )}
             onClick={(e) => e.stopPropagation()}
@@ -73,11 +73,11 @@ export function Modal({
               duration: 0.3,
             }}
           >
-            <div className="flex items-center justify-between border-b p-4">
+            <div className="flex items-center justify-between border-b pl-4 pr-2 md:pl-6 md:pr-3 py-2 md:py-3">
               <h3 className="text-2xl">{title}</h3>
               <button
                 onClick={onClose}
-                className="rounded-full p-1 hover:bg-gray-100"
+                className="rounded-lg p-4 hover:bg-primary-85 cursor-pointer transition-colors"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />

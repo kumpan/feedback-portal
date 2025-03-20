@@ -54,36 +54,41 @@ export default function SurveyResponsesList({
             key={response.id}
             className={`cursor-pointer rounded-lg transition-colors ${
               response.completed
-                ? "bg-primary-80/30 hover:bg-primary-80/50"
-                : "bg-yellow-50 hover:bg-yellow-100"
+                ? "bg-card hover:bg-card-hover"
+                : "bg-gray-100 hover:bg-gray-200"
             }`}
             onClick={() => openResponseDetails(response)}
           >
             <div className="p-4">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-medium">{response.companyName}</h3>
-                  <p className="text-sm text-gray-600">{response.clientName}</p>
+                  <h3 className="font-medium">
+                    <span>{response.companyName}</span>
+                    {response.clientName &&
+                      response.clientName.trim() !== "Anonymous" && (
+                        <span>, {response.clientName}</span>
+                      )}
+                  </h3>
                 </div>
                 <span
                   className={`px-2 py-1 rounded-full text-xs ${
                     response.completed
                       ? "bg-primary-60/30"
-                      : "bg-yellow-100 text-yellow-800"
+                      : "bg-gray-300 text-gray-800"
                   }`}
                 >
                   {response.completed ? "Svarad" : "Ej besvarad"}
                 </span>
               </div>
-              <div className="flex justify-between text-sm mt-2">
+              <div className="flex justify-between text-sm mt-2 opacity-60">
                 <div>
-                  <p className="text-gray-500">NPS</p>
+                  <p className="">NPS</p>
                   <p className="font-medium">
                     {response.nps !== null ? response.nps : "-"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Nöjdhet</p>
+                  <p>Nöjdhet</p>
                   <p className="font-medium">
                     {response.satisfaction !== null
                       ? response.satisfaction
@@ -91,7 +96,7 @@ export default function SurveyResponsesList({
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Kommunikation</p>
+                  <p>Kommunikation</p>
                   <p className="font-medium">
                     {response.communication !== null
                       ? response.communication
@@ -108,7 +113,12 @@ export default function SurveyResponsesList({
         <Modal
           isOpen={isModalOpen}
           onClose={closeModal}
-          title={`${selectedResponse.companyName}, ${selectedResponse.clientName}`}
+          title={`${selectedResponse.companyName}${
+            selectedResponse.clientName &&
+            selectedResponse.clientName !== "Anonymous"
+              ? `, ${selectedResponse.clientName}`
+              : ""
+          }`}
         >
           <div className="space-y-4">
             <div className="text-xl mb-4">

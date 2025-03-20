@@ -80,7 +80,7 @@ const GenerateLink = () => {
             se vem som svarat på frågorna.
           </p>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label htmlFor="clientName">Namn på kunden</Label>
             <Input
               id="clientName"
@@ -90,7 +90,7 @@ const GenerateLink = () => {
             />
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label htmlFor="companyName">Företagsnamn</Label>
             <Input
               id="companyName"
@@ -107,11 +107,12 @@ const GenerateLink = () => {
               onClick={handleGenerateLink}
               className="w-full mt-2"
               disabled={isLoading}
+              size="lg"
             >
               {isLoading ? "Generating..." : "Generate Link"}
             </Button>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-2">
               <p className="text-sm font-medium">Kundens länk:</p>
               <div className="flex items-center gap-2">
                 <Input
@@ -131,6 +132,7 @@ const GenerateLink = () => {
                 }}
                 variant="outline"
                 className="w-full mt-1"
+                size="lg"
               >
                 Generera ny länk
               </Button>
