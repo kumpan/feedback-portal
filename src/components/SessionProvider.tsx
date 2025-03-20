@@ -21,11 +21,11 @@ export default function SessionProvider({
   }, [session, status, router]);
 
   if (status === "loading") {
-    return <div>Loading...</div>;
+    return <></>;
   }
 
   if (!session) {
-    return null;
+    return <></>;
   }
 
   return <>{children}</>;

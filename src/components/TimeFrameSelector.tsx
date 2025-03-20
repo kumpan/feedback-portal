@@ -14,12 +14,12 @@ export function TimeFrameSelector() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [timeFrame, setTimeFrame] = useState(
-    searchParams.get("time") || "last30days"
+    searchParams.get("timeframe") || "last30days"
   );
 
   useEffect(() => {
     const currentParams = new URLSearchParams(searchParams.toString());
-    currentParams.set("time", timeFrame);
+    currentParams.set("timeframe", timeFrame);
     router.push(`/dashboard?${currentParams.toString()}`);
   }, [timeFrame, router, searchParams]);
 
@@ -32,7 +32,9 @@ export function TimeFrameSelector() {
         <SelectContent>
           <SelectItem value="last7days">Senaste 7 dagarna</SelectItem>
           <SelectItem value="last30days">Senaste 30 dagarna</SelectItem>
-          <SelectItem value="all">Visa allt!</SelectItem>
+          <SelectItem value="last6months">Senaste 6 månaderna</SelectItem>
+          <SelectItem value="last1year">Senaste året</SelectItem>
+          <SelectItem value="all">Visa allt</SelectItem>
         </SelectContent>
       </Select>
     </div>

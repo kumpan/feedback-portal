@@ -113,11 +113,7 @@ export default function Home() {
   };
 
   if (isLoading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p>Loading survey...</p>
-      </main>
-    );
+    return <></>;
   }
 
   if (error && error.includes("invalid or has expired")) {
@@ -136,149 +132,148 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center">
       <section className="w-full flex items-center justify-center">
         <div className="flex max-w-3xl flex-col w-full px-4 md:px-8">
-          <h1 className="text-2xl mb-4">Kumpan survey</h1>
-          {surveyLink && (
-            <div className="mb-4">
-              <p className="text-lg">
-                Hello {surveyLink.clientName} from {surveyLink.companyName}! We
-                appreciate your feedback.
-              </p>
-            </div>
-          )}
-          {error && (
-            <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
-              <p>{error}</p>
-            </div>
-          )}
+          <div className="space-y-2 max-w-lg">
+            <h1 className="text-4xl md:text-5xl">Hej 👋</h1>
+            <p className="text-lg">
+              På Kumpan strävar vi alltid efter att bli bättre, så dela gärna
+              med dig av din upplevelse när vi nyligen arbetade tillsammans.
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="h-0.5 w-full bg-border/10 my-8" />
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* NPS Question (0-10) */}
-            <Card className="px-4 md:px-8 py-4 md:py-8">
-              <h2 className="text-xl mb-4 md:text-2xl">
-                Hur troligt är det att du rekommenderar oss?
-              </h2>
-              <div className="flex gap-1">
-                {Array.from({ length: 11 }, (_, i) => (
-                  <label
-                    key={i}
-                    htmlFor={`nps-${i}`}
-                    className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
-                  >
-                    <input
-                      type="radio"
-                      name="nps"
-                      value={i}
-                      id={`nps-${i}`}
-                      className="sr-only"
-                      required
-                      checked={formData.nps === i.toString()}
-                      onChange={handleInputChange}
-                    />
-                    <p className="text-lg md:text-xl">{i}</p>
-                  </label>
-                ))}
-              </div>
+            <h2 className="text-xl mb-4 md:text-2xl">
+              Hur troligt är det att du rekommenderar oss?
+            </h2>
+            <div className="flex gap-1">
+              {Array.from({ length: 11 }, (_, i) => (
+                <label
+                  key={i}
+                  htmlFor={`nps-${i}`}
+                  className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="nps"
+                    value={i}
+                    id={`nps-${i}`}
+                    className="sr-only"
+                    required
+                    checked={formData.nps === i.toString()}
+                    onChange={handleInputChange}
+                  />
+                  <p className="text-lg md:text-xl">{i}</p>
+                </label>
+              ))}
+            </div>
 
-              <div className="flex justify-between w-full opacity-70">
-                <p className="text-sm">Inte alls troligt</p>
-                <p className="text-sm">Väldigt troligt</p>
-              </div>
-            </Card>
+            <div className="flex justify-between w-full opacity-70">
+              <p className="text-sm">Inte alls troligt</p>
+              <p className="text-sm">Väldigt troligt</p>
+            </div>
+
+            {/* Divider */}
+            <div className="h-0.5 w-full bg-border/10 my-8" />
 
             {/* Satisfaction Question (1-5) */}
-            <Card className="px-4 md:px-8 py-4 md:py-8">
-              <h2 className="text-xl mb-4 md:text-2xl">
-                Hur nöjd är du med våra tjänster överlag?
-              </h2>
+            <h2 className="text-xl mb-4 md:text-2xl">
+              Hur nöjd är du med våra tjänster överlag?
+            </h2>
 
-              <div className="flex gap-1">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <label
-                    key={i + 1}
-                    htmlFor={`sat-${i + 1}`}
-                    className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
-                  >
-                    <input
-                      type="radio"
-                      name="satisfaction"
-                      value={i + 1}
-                      id={`sat-${i + 1}`}
-                      className="sr-only"
-                      required
-                      checked={formData.satisfaction === (i + 1).toString()}
-                      onChange={handleInputChange}
-                    />
-                    <p className="text-lg md:text-xl">{i + 1}</p>
-                  </label>
-                ))}
-              </div>
+            <div className="flex gap-1">
+              {Array.from({ length: 5 }, (_, i) => (
+                <label
+                  key={i + 1}
+                  htmlFor={`sat-${i + 1}`}
+                  className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="satisfaction"
+                    value={i + 1}
+                    id={`sat-${i + 1}`}
+                    className="sr-only"
+                    required
+                    checked={formData.satisfaction === (i + 1).toString()}
+                    onChange={handleInputChange}
+                  />
+                  <p className="text-lg md:text-xl">{i + 1}</p>
+                </label>
+              ))}
+            </div>
 
-              <div className="flex justify-between w-full opacity-70">
-                <p className="text-sm">Mycket missnöjd</p>
-                <p className="text-sm">Mycket nöjd</p>
-              </div>
-            </Card>
+            <div className="flex justify-between w-full opacity-70">
+              <p className="text-sm">Mycket missnöjd</p>
+              <p className="text-sm">Mycket nöjd</p>
+            </div>
+
+            {/* Divider */}
+            <div className="h-0.5 w-full bg-border/10 my-8" />
 
             {/* Communication Question (1-5) */}
-            <Card className="px-4 md:px-8 py-4 md:py-8">
-              <h2 className="text-xl mb-4 md:text-2xl">
-                Hur skulle du bedöma vår kommunikation genom projektet?
-              </h2>
+            <h2 className="text-xl mb-4 md:text-2xl">
+              Hur skulle du bedöma vår kommunikation genom projektet?
+            </h2>
 
-              <div className="flex gap-1">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <label
-                    key={i + 1}
-                    htmlFor={`com-${i + 1}`}
-                    className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
-                  >
-                    <input
-                      type="radio"
-                      name="communication"
-                      value={i + 1}
-                      id={`com-${i + 1}`}
-                      className="sr-only"
-                      required
-                      checked={formData.communication === (i + 1).toString()}
-                      onChange={handleInputChange}
-                    />
-                    <p className="text-lg md:text-xl">{i + 1}</p>
-                  </label>
-                ))}
-              </div>
+            <div className="flex gap-1">
+              {Array.from({ length: 5 }, (_, i) => (
+                <label
+                  key={i + 1}
+                  htmlFor={`com-${i + 1}`}
+                  className="flex flex-col justify-center items-center w-full py-2 rounded bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 cursor-pointer has-[:checked]:bg-indigo-900 has-[:checked]:text-indigo-100 transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="communication"
+                    value={i + 1}
+                    id={`com-${i + 1}`}
+                    className="sr-only"
+                    required
+                    checked={formData.communication === (i + 1).toString()}
+                    onChange={handleInputChange}
+                  />
+                  <p className="text-lg md:text-xl">{i + 1}</p>
+                </label>
+              ))}
+            </div>
 
-              <div className="flex justify-between w-full opacity-70">
-                <p className="text-sm">Mycket missnöjd</p>
-                <p className="text-sm">Mycket nöjd</p>
-              </div>
-            </Card>
+            <div className="flex justify-between w-full opacity-70">
+              <p className="text-sm">Mycket missnöjd</p>
+              <p className="text-sm">Mycket nöjd</p>
+            </div>
+
+            {/* Divider */}
+            <div className="h-0.5 w-full bg-border/10 my-8" />
 
             {/* What We Did Well (Text) */}
-            <Card className="px-4 md:px-8 py-4 md:py-8">
-              <h2 className="text-xl mb-4 md:text-2xl">Vad gjorde vi bra?</h2>
-              <Textarea
-                name="whatWeDidWell"
-                placeholder="Skriv ditt svar..."
-                value={formData.whatWeDidWell}
-                onChange={handleInputChange}
-              />
-            </Card>
+            <h2 className="text-xl mb-4 md:text-2xl">Vad gjorde vi bra?</h2>
+            <Textarea
+              name="whatWeDidWell"
+              placeholder="Skriv ditt svar..."
+              value={formData.whatWeDidWell}
+              onChange={handleInputChange}
+            />
+
+            {/* Divider */}
+            <div className="h-0.5 w-full bg-border/10 my-8" />
 
             {/* What We Can Improve (Text) */}
-            <Card className="px-4 md:px-8 py-4 md:py-8">
-              <h2 className="text-xl mb-4 md:text-2xl">
-                Vad kan vi göra bättre?
-              </h2>
-              <Textarea
-                name="whatWeCanImprove"
-                placeholder="Skriv ditt svar..."
-                value={formData.whatWeCanImprove}
-                onChange={handleInputChange}
-              />
-            </Card>
+            <h2 className="text-xl mb-4 md:text-2xl">
+              Vad kan vi göra bättre?
+            </h2>
+            <Textarea
+              name="whatWeCanImprove"
+              placeholder="Skriv ditt svar..."
+              value={formData.whatWeCanImprove}
+              onChange={handleInputChange}
+            />
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full mt-6"
               size="lg"
               disabled={isLoading}
             >

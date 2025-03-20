@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { X, Copy, Check } from "lucide-react";
+import { Copy, Check } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
 
 interface GenerateLinkProps {}
 
@@ -68,83 +68,76 @@ const GenerateLink = ({}: GenerateLinkProps) => {
     <>
       <Button onClick={() => setIsModalOpen(true)}>Generate link</Button>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg relative">
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title="Generera länk"
+        className="max-w-lg"
+      >
+        <div className="space-y-4">
+          <p className="opacity-70">
+            Här kan du generera en länk som du kan skicka till kunden, så kan vi
+            se vem som svarat på frågorna.
+          </p>
+
+          <div className="space-y-1">
+            <Label htmlFor="clientName">Namn på kunden</Label>
+            <Input
+              id="clientName"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder="Emilito Doe"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="companyName">Företagsnamn</Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Kumpan"
+            />
+          </div>
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+
+          {!generatedLink ? (
+            <Button
+              onClick={handleGenerateLink}
+              className="w-full mt-2"
+              disabled={isLoading}
             >
-              <X size={20} />
-            </button>
-            
-            <h2 className="text-xl font-semibold mb-4">Generate Survey Link</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="clientName">Client Name</Label>
+              {isLoading ? "Generating..." : "Generate Link"}
+            </Button>
+          ) : (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Kundens länk:</p>
+              <div className="flex items-center gap-2">
                 <Input
-                  id="clientName"
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  placeholder="Enter client name"
+                  value={generatedLink}
+                  readOnly
+                  className="flex-1 bg-gray-50"
                 />
-              </div>
-              
-              <div>
-                <Label htmlFor="companyName">Company Name</Label>
-                <Input
-                  id="companyName"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Enter company name"
-                />
-              </div>
-              
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              
-              {!generatedLink ? (
-                <Button 
-                  onClick={handleGenerateLink} 
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Generating..." : "Generate Link"}
+                <Button onClick={copyToClipboard} variant="outline" size="lg">
+                  {isCopied ? <Check size={16} /> : <Copy size={16} />}
                 </Button>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium">Survey Link:</p>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={generatedLink}
-                      readOnly
-                      className="flex-1 bg-gray-50"
-                    />
-                    <Button 
-                      size="sm" 
-                      onClick={copyToClipboard}
-                      variant="outline"
-                    >
-                      {isCopied ? <Check size={16} /> : <Copy size={16} />}
-                    </Button>
-                  </div>
-                  <Button 
-                    onClick={() => {
-                      setGeneratedLink("");
-                      setClientName("");
-                      setCompanyName("");
-                    }}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Generate Another Link
-                  </Button>
-                </div>
-              )}
+              </div>
+              <Button
+                onClick={() => {
+                  setGeneratedLink("");
+                  setClientName("");
+                  setCompanyName("");
+                }}
+                variant="outline"
+                className="w-full mt-1"
+              >
+                Generera ny länk
+              </Button>
             </div>
-          </Card>
+          )}
         </div>
-      )}
+      </Modal>
     </>
   );
 };

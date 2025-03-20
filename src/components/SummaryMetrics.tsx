@@ -1,55 +1,73 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { useEffect } from "react";
 
 interface SummaryMetricsProps {
   avgSatisfaction: number;
   avgCommunication: number;
-  totalResponses: number;
   timeframeNps: number;
-  timeFrameDisplay: string;
+}
+
+function Counter({
+  value,
+  decimals = 0,
+}: {
+  value: number;
+  decimals?: number;
+}) {
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => latest.toFixed(decimals));
+
+  useEffect(() => {
+    const animation = animate(count, value, {
+      duration: 0.5,
+      ease: "easeOut",
+    });
+
+    return animation.stop;
+  }, [count, value]);
+
+  return <motion.span>{rounded}</motion.span>;
 }
 
 export function SummaryMetrics({
-  timeFrameDisplay,
   timeframeNps,
   avgCommunication,
   avgSatisfaction,
-  totalResponses,
 }: SummaryMetricsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 ">
-      <Card>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
+      <Card className="gap-0">
         <CardHeader>
-          <CardTitle>NPS (-100 to +100)</CardTitle>
+          <CardTitle>NPS</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">
-            {timeframeNps >= 0 ? `+${timeframeNps}` : timeframeNps}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {timeFrameDisplay} (baserat på {totalResponses} svar)
-          </p>
+          <motion.p className="text-4xl md:text-6xl font-bold">
+            {timeframeNps >= 0 ? "+" : ""}
+            <Counter value={timeframeNps} />
+          </motion.p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="gap-0">
         <CardHeader>
-          <CardTitle>Nöjdhet (1-5)</CardTitle>
+          <CardTitle>Nöjdhet</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">{avgSatisfaction}</p>
-          <p className="text-sm text-muted-foreground">
-            Genomsnitt (baserat på {totalResponses} svar)
-          </p>
+          <motion.p className="text-4xl md:text-6xl font-bold">
+            <Counter value={avgSatisfaction} decimals={1} />
+          </motion.p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="gap-0">
         <CardHeader>
-          <CardTitle>Kommunikation (1-5)</CardTitle>
+          <CardTitle>Kommunikation</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">{avgCommunication}</p>
-          <p className="text-sm text-muted-foreground">
-            Genomsnitt (baserat på {totalResponses} svar)
-          </p>
+          <motion.p className="text-4xl md:text-6xl font-bold">
+            <Counter value={avgCommunication} decimals={1} />
+          </motion.p>
         </CardContent>
       </Card>
     </div>

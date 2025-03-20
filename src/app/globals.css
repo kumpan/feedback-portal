@@ -3,15 +3,15 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --primary-10: var(--primary-10);
-  --primary-20: var(--primary-20);
-  --primary-30: var(--primary-30);
-  --primary-40: var(--primary-40);
-  --primary-50: var(--primary-50);
-  --primary-60: var(--primary-60);
-  --primary-70: var(--primary-70);
-  --primary-80: var(--primary-80);
-  --primary-90: var(--primary-90);
+  --color-primary-10: hsl(var(--primary-10));
+  --color-primary-20: hsl(var(--primary-20));
+  --color-primary-30: hsl(var(--primary-30));
+  --color-primary-40: hsl(var(--primary-40));
+  --color-primary-50: hsl(var(--primary-50));
+  --color-primary-60: hsl(var(--primary-60));
+  --color-primary-70: hsl(var(--primary-70));
+  --color-primary-80: hsl(var(--primary-80));
+  --color-primary-90: hsl(var(--primary-90));
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -60,55 +60,54 @@
   --radius: 0.625rem;
 
   /* Primary palette */
-  --primary-10: #1f0640;
-  --primary-20: #451484;
-  --primary-30: #712bca;
-  --primary-40: #9251e4;
-  --primary-50: #ad87ff;
-  --primary-60: #bbabff;
-  --primary-70: #d0cbff;
-  --primary-80: #d0ceff;
-  --primary-90: #f0f1ff;
+  --primary-10: 268, 77%, 14%; /* #1f0640 */
+  --primary-20: 268, 77%, 30%; /* #451484 */
+  --primary-30: 268, 66%, 48%; /* #712bca */
+  --primary-40: 268, 72%, 60%; /* #9251e4 */
+  --primary-50: 260, 100%, 76%; /* #ad87ff */
+  --primary-60: 252, 100%, 84%; /* #bbabff */
+  --primary-70: 246, 100%, 90%; /* #d0cbff */
+  --primary-80: 244, 100%, 90%; /* #d0ceff */
+  --primary-90: 240, 100%, 97%; /* #f0f1ff */
 
   /* Theme variables */
-  --background: var(--primary-90);
-  --foreground: var(--primary-10);
+  --background: hsl(var(--primary-90));
+  --foreground: hsl(var(--primary-10));
 
-  --card: var(--primary-90);
-  --card-foreground: var(--primary-10);
+  --card: hsl(var(--primary-90));
+  --card-foreground: hsl(var(--primary-10));
 
-  --popover: var(--primary-90);
-  --popover-foreground: var(--primary-10);
+  --popover: hsl(var(--primary-90));
+  --popover-foreground: hsl(var(--primary-10));
 
-  --primary: var(--primary-10);
-  --primary-foreground: var(--primary-90);
+  --primary: hsl(var(--primary-10));
+  --primary-foreground: hsl(var(--primary-90));
 
-  --secondary: var(--primary-30);
-  --secondary-foreground: var(--primary-90);
+  --secondary: hsl(var(--primary-30));
+  --secondary-foreground: hsl(var(--primary-90));
 
-  --muted: var(--primary-70);
-  --muted-foreground: var(--primary-20);
+  --muted: hsl(var(--primary-70));
+  --muted-foreground: hsl(var(--primary-20));
 
-  --accent: var(--primary-60);
-  --accent-foreground: var(--primary-10);
+  --accent: hsl(var(--primary-60));
+  --accent-foreground: hsl(var(--primary-10));
 
   --destructive: #e63946;
 
-  --border: var(--primary-20);
-  --input: var(--primary-20);
-  --ring: var(--primary-50);
+  --border: hsl(var(--primary-20));
+  --input: hsl(var(--primary-20));
+  --ring: hsl(var(--primary-50));
 
   /* Charts */
-  --chart-1: 217, 91%, 60%;
+  --chart-1: var(--primary-20);
   --chart-2: 142, 72%, 50%;
   --chart-3: 34, 100%, 50%;
   --color-nps: hsl(var(--chart-1));
   --color-satisfaction: hsl(var(--chart-2));
   --color-communication: hsl(var(--chart-3));
 
-  /* Industry benchmark colors */
+  /* Industry benchmarks */
   --color-industry-avg: hsl(45, 100%, 50%);
-  --color-industry-median: hsl(120, 60%, 50%);
   --color-top-quartile: hsl(140, 70%, 40%);
   --color-bottom-quartile: hsl(30, 100%, 50%);
 
@@ -142,9 +141,9 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-1: var(--primary-20);
+  --chart-2: 142, 72%, 50%;
+  --chart-3: 34, 100%, 50%;
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.21 0.006 285.885);

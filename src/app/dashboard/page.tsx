@@ -129,6 +129,8 @@ export default async function Dashboard({
     {
       last7days: "Last 7 Days",
       last30days: "Last 30 Days",
+      last6months: "Last 6 Months",
+      last1year: "Last Year",
       all: "All Time",
     }[timeFrame] || "Last 30 Days";
 
@@ -142,7 +144,7 @@ export default async function Dashboard({
           <div className="flex items-center gap-2">
             <div className="flex flex-col items-end">
               <p className="font-medium text-lg">{session.user.name}</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm opacity-70">
                 {
                   positiveTraits[
                     Math.floor(Math.random() * positiveTraits.length)
@@ -179,16 +181,11 @@ export default async function Dashboard({
           <SummaryMetrics
             avgSatisfaction={surveyData.avgSatisfaction}
             avgCommunication={surveyData.avgCommunication}
-            totalResponses={surveyData.totalResponses}
             timeframeNps={surveyData.timeframeNps}
-            timeFrameDisplay={timeFrameDisplay}
           />
 
           <NPSTrendChart
             trendData={surveyData.trendData}
-            avgNps={surveyData.timeframeNps}
-            latestNps={surveyData.latestNps}
-            totalResponses={surveyData.totalResponses}
             timeFrame={timeFrame}
           />
 

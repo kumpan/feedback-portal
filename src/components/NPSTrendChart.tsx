@@ -23,6 +23,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { getTimeFrameStartDate } from "@/app/utils/surveyUtils";
 
 type NPSTrendData = {
   date: string;
@@ -33,10 +34,7 @@ type NPSTrendData = {
 
 interface NPSTrendChartProps {
   trendData: NPSTrendData[];
-  avgNps: number;
-  latestNps: number; // Changed from currentNps
-  totalResponses: number;
-  timeFrame: string;
+  timeFrame?: string;
   industryData?: {
     industryAvg: number;
     industryMedian: number;
@@ -59,15 +57,53 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+// Custom tooltip component
+const CustomChartTooltipContent = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const industryData = defaultIndustryData;
+
+    return (
+      <div className="bg-white p-3 border rounded-md shadow-md">
+        <p className="font-medium">{data.formattedDate}</p>
+        <p className="text-sm">
+          <span className="font-medium">NPS:</span> {data.nps}
+        </p>
+        <div className="mt-2 pt-2 border-t border-gray-200">
+          <p className="text-xs text-gray-600">Branschriktmärken:</p>
+          <p className="text-xs">
+            <span className="font-medium">Top:</span> +
+            {industryData.topQuartile}
+          </p>
+          <p className="text-xs">
+            <span className="font-medium">Average:</span> +
+            {industryData.industryAvg}
+          </p>
+          <p className="text-xs">
+            <span className="font-medium">Bottom:</span> +
+            {industryData.bottomQuartile}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function NPSTrendChart({
   trendData,
-  avgNps,
-  latestNps, // Changed from currentNps
-  totalResponses,
-  timeFrame,
+  timeFrame = "last30days",
   industryData = defaultIndustryData,
 }: NPSTrendChartProps) {
-  const formattedData = trendData.map((item) => ({
+  // Filter data based on the selected time frame
+  const startDate = getTimeFrameStartDate(timeFrame);
+
+  const filteredData = trendData.filter((item) => {
+    const itemDate = new Date(item.date);
+    return itemDate >= startDate;
+  });
+
+  const formattedData = filteredData.map((item) => ({
     ...item,
     formattedDate: new Date(item.date).toLocaleDateString("sv-SE", {
       day: "2-digit",
@@ -75,130 +111,12 @@ export function NPSTrendChart({
     }),
   }));
 
-  const dataLength = formattedData.length;
-  const trendDirection =
-    dataLength >= 2
-      ? formattedData[dataLength - 1].nps - formattedData[0].nps
-      : 0;
-
-  const trendPercentage =
-    dataLength >= 2 && formattedData[0].nps !== 0
-      ? (
-          ((formattedData[dataLength - 1].nps - formattedData[0].nps) /
-            Math.abs(formattedData[0].nps)) *
-          100
-        ).toFixed(1)
-      : "0.0";
-
-  const getTimeFrameText = () => {
-    switch (timeFrame) {
-      case "last7days":
-        return "Visar trender för de senaste 7 dagarna";
-      case "last30days":
-        return "Visar trender för de senaste 30 dagarna";
-      case "all":
-      default:
-        return "Visar alla trender";
-    }
-  };
-
-  const getPerformanceLevel = (score: number) => {
-    if (score >= industryData.topQuartile) return "Excellent (Top Quartile)";
-    if (score >= industryData.industryMedian) return "Above Average";
-    if (score >= industryData.industryAvg) return "Average";
-    if (score >= industryData.bottomQuartile) return "Below Average";
-    return "Poor (Bottom Quartile)";
-  };
-
-  const getPerformanceColor = (score: number) => {
-    if (score >= industryData.topQuartile) return "text-green-600";
-    if (score >= industryData.industryMedian) return "text-green-500";
-    if (score >= industryData.industryAvg) return "text-yellow-500";
-    if (score >= industryData.bottomQuartile) return "text-orange-500";
-    return "text-red-500";
-  };
-
-  // Get title based on timeframe
-  const getNpsBoxTitle = () => {
-    switch (timeFrame) {
-      case "last7days":
-        return "Last 7 Days NPS Score";
-      case "last30days":
-        return "Last 30 Days NPS Score";
-      case "all":
-        return "All Time NPS Score";
-      default:
-        return "NPS Score";
-    }
-  };
-
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>NPS Trend över tid</CardTitle>
-          <div className="text-sm font-medium">
-            Period:{" "}
-            {formattedData.length > 0
-              ? `${new Date(formattedData[0].date).toLocaleDateString(
-                  "sv-SE"
-                )} - ${new Date(
-                  formattedData[formattedData.length - 1].date
-                ).toLocaleDateString("sv-SE")}`
-              : "Ingen data"}
-          </div>
-        </div>
+        <CardTitle>NPS trend</CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Time Period NPS Score Box */}
-        <div className="bg-card border rounded-lg p-4 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-medium text-muted-foreground">
-                {getNpsBoxTitle()}
-              </h3>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span
-                  className={`text-3xl font-bold ${getPerformanceColor(
-                    avgNps
-                  )}`}
-                >
-                  {avgNps >= 0 ? `+${avgNps}` : avgNps}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  ({getPerformanceLevel(avgNps)})
-                </span>
-              </div>
-            </div>
-            <div className="grid text-right">
-              <span className="text-sm font-medium">Industry Benchmarks:</span>
-              <span className="text-xs text-muted-foreground">
-                Avg: +{industryData.industryAvg} | Median: +
-                {industryData.industryMedian}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Top: +{industryData.topQuartile} | Bottom: +
-                {industryData.bottomQuartile}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Latest NPS value if it exists */}
-        {trendData.length > 0 && (
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm font-semibold">
-              Latest NPS Value:{" "}
-              <span className={getPerformanceColor(latestNps)}>
-                {latestNps >= 0 ? `+${latestNps}` : latestNps}
-              </span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {totalResponses} responses
-            </div>
-          </div>
-        )}
-
         {/* NPS Chart */}
         <ChartContainer config={chartConfig}>
           {formattedData.length > 0 ? (
@@ -206,8 +124,8 @@ export function NPSTrendChart({
               accessibilityLayer
               data={formattedData}
               margin={{
-                left: 12,
-                right: 12,
+                left: 8,
+                right: 8,
                 top: 20,
                 bottom: 12,
               }}
@@ -218,15 +136,21 @@ export function NPSTrendChart({
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                hide={true}
               />
               <YAxis
-                domain={[-100, 100]}
-                tickCount={11}
+                domain={[0, 100]}
+                tickCount={5}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                hide={true}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <ChartTooltip
+                cursor={true}
+                content={<CustomChartTooltipContent />}
+              />
+
               <Line
                 dataKey="nps"
                 name="NPS Score"
@@ -237,65 +161,24 @@ export function NPSTrendChart({
                 activeDot={{ r: 6 }}
               />
 
-              {/* Reference line for period average NPS */}
-              <ReferenceLine
-                y={avgNps}
-                stroke="var(--color-current-nps)"
-                strokeWidth={2}
-                strokeDasharray="5 2"
-                label={{
-                  value: `Period Avg: ${avgNps >= 0 ? `+${avgNps}` : avgNps}`,
-                  position: "right",
-                  fill: "var(--color-current-nps)",
-                  fontSize: 12,
-                  fontWeight: "bold",
-                }}
-              />
-
               {/* Reference lines for industry benchmarks */}
               <ReferenceLine
                 y={industryData.industryAvg}
                 stroke="var(--color-industry-avg)"
-                strokeDasharray="3 3"
-                label={{
-                  value: `Avg: +${industryData.industryAvg}`,
-                  position: "left",
-                  fill: "var(--color-industry-avg)",
-                  fontSize: 11,
-                }}
-              />
-              <ReferenceLine
-                y={industryData.industryMedian}
-                stroke="var(--color-industry-median)"
-                strokeDasharray="3 3"
-                label={{
-                  value: `Median: +${industryData.industryMedian}`,
-                  position: "left",
-                  fill: "var(--color-industry-median)",
-                  fontSize: 11,
-                }}
+                strokeDasharray="8 8"
+                label={undefined}
               />
               <ReferenceLine
                 y={industryData.topQuartile}
                 stroke="var(--color-top-quartile)"
-                strokeDasharray="3 3"
-                label={{
-                  value: `Top: +${industryData.topQuartile}`,
-                  position: "insideTopLeft",
-                  fill: "var(--color-top-quartile)",
-                  fontSize: 11,
-                }}
+                strokeDasharray="8 8"
+                label={undefined}
               />
               <ReferenceLine
                 y={industryData.bottomQuartile}
                 stroke="var(--color-bottom-quartile)"
-                strokeDasharray="3 3"
-                label={{
-                  value: `Bottom: +${industryData.bottomQuartile}`,
-                  position: "insideBottomLeft",
-                  fill: "var(--color-bottom-quartile)",
-                  fontSize: 11,
-                }}
+                strokeDasharray="8 8"
+                label={undefined}
               />
             </LineChart>
           ) : (
@@ -305,30 +188,6 @@ export function NPSTrendChart({
           )}
         </ChartContainer>
       </CardContent>
-      <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            {trendDirection !== 0 && (
-              <div className="flex items-center gap-2 font-medium leading-none">
-                {trendDirection > 0 ? (
-                  <>
-                    Trending upp med {trendPercentage}% under perioden{" "}
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                  </>
-                ) : (
-                  <>
-                    Trending ner med {Math.abs(Number(trendPercentage))}% under
-                    perioden <TrendingDown className="h-4 w-4 text-red-500" />
-                  </>
-                )}
-              </div>
-            )}
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              {getTimeFrameText()}
-            </div>
-          </div>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

@@ -43,6 +43,10 @@ export function getTimeFrameStartDate(timeFrame: string): Date {
       return new Date(now.setDate(now.getDate() - 7));
     case "last30days":
       return new Date(now.setDate(now.getDate() - 30));
+    case "last6months":
+      return new Date(now.setMonth(now.getMonth() - 6));
+    case "last1year":
+      return new Date(now.setFullYear(now.getFullYear() - 1));
     case "all":
     default:
       return new Date(0);
