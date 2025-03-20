@@ -67,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} antialiased bg-primary-90 text-foreground`}
+        className={`${spaceGrotesk.variable} font-sans antialiased bg-primary-90 text-foreground`}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>
