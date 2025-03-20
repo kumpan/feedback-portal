@@ -16,7 +16,7 @@ export function SummaryMetrics({
   totalResponses,
 }: SummaryMetricsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 ">
       <Card>
         <CardHeader>
           <CardTitle>NPS (-100 to +100)</CardTitle>

@@ -4,15 +4,14 @@ import { NPSTrendChart } from "@/components/NPSTrendChart";
 import { SummaryMetrics } from "@/components/SummaryMetrics";
 import SurveyResponsesList from "@/components/SurveyResponsesList";
 import {
-  SurveyResponse,
-  industryBenchmarks,
   getTimeFrameStartDate,
   processSurveyData,
 } from "@/app/utils/surveyUtils";
 import GenerateLink from "@/components/GenerateLink";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import SignOutButton from "@/components/SignOutButton";
+
+import Image from "next/image";
 
 interface SurveyData {
   timeframeNps: number;
@@ -80,6 +79,35 @@ async function getSurveyData(timeFrame: string): Promise<SurveyData> {
   };
 }
 
+const positiveTraits = [
+  "Awesome human",
+  "Kind soul",
+  "Brilliant mind",
+  "Inspiring person",
+  "Wonderful friend",
+  "Creative genius",
+  "Amazing leader",
+  "Joyful spirit",
+  "Caring heart",
+  "Fantastic teammate",
+  "Radiant personality",
+  "Fearless innovator",
+  "Dedicated doer",
+  "Bright star",
+  "Great friend",
+  "Talented creator",
+  "Strong supporter",
+  "Charming soul",
+  "Loving presence",
+  "Bold visionary",
+  "Sweet encourager",
+  "Determined achiever",
+  "Happy helper",
+  "Cheerful companion",
+  "Inventive spirit",
+  "Generous heart",
+];
+
 export default async function Dashboard({
   searchParams,
 }: {
@@ -90,6 +118,9 @@ export default async function Dashboard({
   if (!session || !session.user) {
     redirect("/auth/signin");
   }
+
+  const highResImage =
+    session?.user?.image?.replace(/=s\d+-c$/, "=s400-c") || "";
 
   const timeFrame = (searchParams.timeframe as string) || "last30days";
   const surveyData = await getSurveyData(timeFrame);
@@ -103,15 +134,45 @@ export default async function Dashboard({
 
   return (
     <main className="w-full">
-      <section className="w-full flex min-h-svh items-center justify-center">
-        <div className="w-full max-w-5xl px-4 md:px-8 gap-4 flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Dashboard</h1>
-            <div className="flex gap-4 items-center">
-              <p className="text-sm mr-2">Signed in as: {session.user.email}</p>
-              <SignOutButton />
-              <TimeFrameSelector />
-              <GenerateLink />
+      <div className="flex items-center justify-center">
+        <div className="w-full max-w-5xl px-4 md:px-8 flex justify-between gap-4 py-4">
+          <div className="h-16 w-16 bg-indigo-500 flex items-center justify-center">
+            logo
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end">
+              <p className="font-medium text-lg">{session.user.name}</p>
+              <p className="text-sm text-gray-500">
+                {
+                  positiveTraits[
+                    Math.floor(Math.random() * positiveTraits.length)
+                  ]
+                }
+              </p>
+            </div>
+            {session.user.image && (
+              <div className="h-12 w-12 overflow-hidden rounded-full border">
+                <Image
+                  src={highResImage}
+                  alt={session?.user?.name ?? "User profile picture"}
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <section className="w-full flex items-center justify-center">
+        <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-2 md:gap-4">
+              <h1 className="text-2xl md:text-4xl font-bold">Dashboard</h1>
+              <div className="flex gap-2 md:gap-4">
+                <GenerateLink />
+                <TimeFrameSelector />
+              </div>
             </div>
           </div>
 
