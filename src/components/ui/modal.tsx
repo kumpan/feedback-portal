@@ -83,7 +83,7 @@ export function Modal({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-4">{children}</div>
+            <div className="p-4 md:p-6">{children}</div>
           </motion.div>
         </motion.div>
       )}

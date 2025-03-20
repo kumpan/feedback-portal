@@ -113,13 +113,9 @@ const GenerateLink = () => {
             </Button>
           ) : (
             <div className="space-y-2">
-              <p className="text-sm font-medium">Kundens länk:</p>
+              <Label>Kundens länk</Label>
               <div className="flex items-center gap-2">
-                <Input
-                  value={generatedLink}
-                  readOnly
-                  className="flex-1 bg-gray-50"
-                />
+                <Input value={generatedLink} readOnly className="flex-1" />
                 <Button onClick={copyToClipboard} variant="outline" size="lg">
                   {isCopied ? <Check size={16} /> : <Copy size={16} />}
                 </Button>
