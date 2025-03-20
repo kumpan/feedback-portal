@@ -4,25 +4,36 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function SignIn() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-  
+
+  return (
+    <Card className="p-8 max-w-md">
+      <h1 className="text-2xl font-bold">Kumpan dashboard</h1>
+      <p className="mb-6">
+        Logga in med din Kumpan e-postadress (@kumpan.se) för att komma åt vår
+        fina dashboard.
+      </p>
+      <Button
+        onClick={() => signIn("google", { callbackUrl })}
+        className="w-full"
+        size="lg"
+      >
+        Logga in med Google
+      </Button>
+    </Card>
+  );
+}
+
+export default function SignIn() {
   return (
     <main className="min-h-screen flex items-center justify-center">
-      <Card className="p-8 max-w-md">
-        <h1 className="text-2xl mb-6 font-bold">Sign in to Feedback Portal</h1>
-        <p className="mb-6">
-          Please sign in with your Kumpan email address (@kumpan.se) to access the dashboard.
-        </p>
-        <Button 
-          onClick={() => signIn("google", { callbackUrl })}
-          className="w-full"
-        >
-          Sign in with Google
-        </Button>
-      </Card>
+      <Suspense fallback={<></>}>
+        <SignInContent />
+      </Suspense>
     </main>
   );
 }

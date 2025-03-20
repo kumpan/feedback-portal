@@ -1,6 +1,5 @@
 "use client";
 
-import { TrendingUp, TrendingDown } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -10,18 +9,11 @@ import {
   ReferenceLine,
 } from "recharts";
 
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import { getTimeFrameStartDate } from "@/app/utils/surveyUtils";
 
@@ -57,8 +49,21 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-// Custom tooltip component
-const CustomChartTooltipContent = ({ active, payload, label }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: {
+      formattedDate: string;
+      nps: number;
+      satisfaction: number;
+      communication: number;
+      date: string;
+    };
+  }>;
+  label?: string;
+}
+
+const CustomChartTooltipContent = ({ active, payload }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const industryData = defaultIndustryData;

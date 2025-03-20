@@ -3,17 +3,23 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const code = searchParams.get("code");
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [surveyLink, setSurveyLink] = useState<any>(null);
+  const [surveyLink, setSurveyLink] = useState<{
+    id: string;
+    uniqueCode: string;
+    clientName: string;
+    companyName: string;
+    createdAt: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
     nps: "",
     satisfaction: "",
@@ -283,5 +289,13 @@ export default function Home() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

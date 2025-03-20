@@ -111,7 +111,7 @@ const positiveTraits = [
 export default async function Dashboard({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await getServerSession();
 
@@ -122,25 +122,15 @@ export default async function Dashboard({
   const highResImage =
     session?.user?.image?.replace(/=s\d+-c$/, "=s400-c") || "";
 
-  const timeFrame = (searchParams.timeframe as string) || "last30days";
+  const resolvedParams = await searchParams;
+  const timeFrame = (resolvedParams.timeframe as string) || "last30days";
   const surveyData = await getSurveyData(timeFrame);
 
-  const timeFrameDisplay =
-    {
-      last7days: "Last 7 Days",
-      last30days: "Last 30 Days",
-      last6months: "Last 6 Months",
-      last1year: "Last Year",
-      all: "All Time",
-    }[timeFrame] || "Last 30 Days";
-
   return (
-    <main className="w-full">
-      <div className="flex items-center justify-center">
+    <main className="w-full bg-primary-90">
+      <div className="flex items-center justify-center border-b">
         <div className="w-full max-w-5xl px-4 md:px-8 flex justify-between gap-4 py-4">
-          <div className="h-16 w-16 bg-indigo-500 flex items-center justify-center">
-            logo
-          </div>
+          <div className="h-16 w-16 bg-primary-20 rounded-xl flex items-center justify-center" />
           <div className="flex items-center gap-2">
             <div className="flex flex-col items-end">
               <p className="font-medium text-lg">{session.user.name}</p>
@@ -168,12 +158,18 @@ export default async function Dashboard({
       </div>
       <section className="w-full flex items-center justify-center">
         <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-          <div className="flex justify-between items-center">
-            <div className="flex flex-col gap-2 md:gap-4">
-              <h1 className="text-2xl md:text-4xl font-bold">Dashboard</h1>
-              <div className="flex gap-2 md:gap-4">
-                <GenerateLink />
+          <div className="flex flex-col md:flex-row md:justify-between items-center mb-4">
+            <div className="flex w-full justify-between flex-col md:flex-row gap-3">
+              <h1 className="text-4xl md:text-5xl">
+                <span>Hallå där</span>
+                {session.user.name && (
+                  <span>, {session.user.name.split(" ")[0]} </span>
+                )}
+                <span>👋</span>
+              </h1>
+              <div className="flex gap-2">
                 <TimeFrameSelector />
+                <GenerateLink />
               </div>
             </div>
           </div>

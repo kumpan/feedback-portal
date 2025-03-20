@@ -7,9 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Copy, Check } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
-interface GenerateLinkProps {}
-
-const GenerateLink = ({}: GenerateLinkProps) => {
+const GenerateLink = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -66,7 +64,9 @@ const GenerateLink = ({}: GenerateLinkProps) => {
 
   return (
     <>
-      <Button onClick={() => setIsModalOpen(true)}>Generate link</Button>
+      <Button onClick={() => setIsModalOpen(true)} size="lg">
+        Generera länk
+      </Button>
 
       <Modal
         isOpen={isModalOpen}

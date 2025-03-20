@@ -4,32 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 
-export default function AuthError() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const error = searchParams.get("error");
 
-  let errorMessage = "An error occurred during authentication";
+  let errorMessage = "Ett fel uppstod under autentiseringen";
 
   if (error === "AccessDenied") {
-    errorMessage = "Access denied. You must use a @kumpan.se email address to sign in.";
+    errorMessage =
+      "Åtkomst nekad. Du måste använda en @kumpan.se e-postadress för att logga in.";
   }
 
   return (
+    <Card className="p-8 max-w-md">
+      <h1 className="text-2xl font-bold">Autentiseringsfel</h1>
+      <p className="mb-6">{errorMessage}</p>
+      <div className="flex gap-2">
+        <Button onClick={() => router.push("/auth/signin")}>Försök igen</Button>
+        <Button variant="outline" onClick={() => router.push("/")}>
+          Till startsidan
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+export default function AuthError() {
+  return (
     <main className="min-h-screen flex items-center justify-center">
-      <Card className="p-8 max-w-md">
-        <h1 className="text-2xl mb-4 font-bold">Authentication Error</h1>
-        <p className="mb-6">{errorMessage}</p>
-        <div className="flex gap-4">
-          <Button onClick={() => router.push("/auth/signin")}>
-            Try Again
-          </Button>
-          <Button variant="outline" onClick={() => router.push("/")}>
-            Return Home
-          </Button>
-        </div>
-      </Card>
+      <Suspense fallback={<div>Loading...</div>}>
+        <AuthErrorContent />
+      </Suspense>
     </main>
   );
 }

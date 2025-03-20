@@ -1,1 +1,3 @@
 # feedback-portal
+
+Use pnpm
