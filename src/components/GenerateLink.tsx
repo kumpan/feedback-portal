@@ -109,7 +109,7 @@ const GenerateLink = () => {
               disabled={isLoading}
               size="lg"
             >
-              {isLoading ? "Generating..." : "Generate Link"}
+              {isLoading ? "Genererar..." : "Generera länk"}
             </Button>
           ) : (
             <div className="space-y-2">
