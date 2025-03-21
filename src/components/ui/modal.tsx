@@ -13,6 +13,54 @@ interface ModalProps {
   className?: string;
 }
 
+const modalVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.9,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      duration: 0.3,
+      staggerChildren: 0.1,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: 20,
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+};
+
+const childVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      opacity: {
+        ease: "easeInOut",
+        duration: 0.2,
+      },
+      y: {
+        type: "spring",
+        damping: 25,
+        stiffness: 300,
+      },
+    },
+  },
+};
+
 export function Modal({
   isOpen,
   onClose,
@@ -63,17 +111,15 @@ export function Modal({
               className
             )}
             onClick={(e) => e.stopPropagation()}
-            initial={{ scale: 0.9, y: 20, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 20, opacity: 0 }}
-            transition={{
-              type: "spring",
-              damping: 25,
-              stiffness: 300,
-              duration: 0.3,
-            }}
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
           >
-            <div className="flex items-center justify-between border-b pl-4 pr-2 md:pl-6 md:pr-3 py-2 md:py-3">
+            <motion.div
+              className="flex items-center justify-between border-b pl-4 pr-2 md:pl-6 md:pr-3 py-2 md:py-3"
+              variants={childVariants}
+            >
               <h3 className="text-2xl">{title}</h3>
               <button
                 onClick={onClose}
@@ -82,8 +128,10 @@ export function Modal({
               >
                 <X className="h-5 w-5" />
               </button>
-            </div>
-            <div className="p-4 md:p-6">{children}</div>
+            </motion.div>
+            <motion.div className="p-4 md:p-6" variants={childVariants}>
+              {children}
+            </motion.div>
           </motion.div>
         </motion.div>
       )}

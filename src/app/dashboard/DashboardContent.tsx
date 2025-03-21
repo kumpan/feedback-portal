@@ -9,6 +9,7 @@ import GenerateLink from "@/components/GenerateLink";
 import { useTimeFrame } from "@/context/TimeFrameContext";
 import { Session } from "next-auth";
 import { SurveyData } from "@/app/actions/surveyActions";
+import { motion } from "framer-motion";
 
 interface DashboardContentProps {
   session: Session;
@@ -16,10 +17,10 @@ interface DashboardContentProps {
   getSurveyData: (timeFrame: string) => Promise<SurveyData>;
 }
 
-export function DashboardContent({ 
-  session, 
+export function DashboardContent({
+  session,
   positiveMessage,
-  getSurveyData
+  getSurveyData,
 }: DashboardContentProps) {
   const { timeFrame } = useTimeFrame();
   const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
@@ -35,7 +36,9 @@ export function DashboardContent({
         setSurveyData(data);
       } catch (err) {
         console.error("Error fetching survey data:", err);
-        setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+        setError(
+          err instanceof Error ? err : new Error("An unknown error occurred")
+        );
       } finally {
         setLoading(false);
       }
@@ -45,56 +48,16 @@ export function DashboardContent({
   }, [timeFrame, getSurveyData]);
 
   if (loading && !surveyData) {
-    return (
-      <section className="w-full flex items-center justify-center">
-        <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-          <div className="flex flex-col md:flex-row md:justify-between items-center mb-0 md:mb-4">
-            <div className="flex w-full justify-between flex-col md:flex-row gap-4">
-              <div>
-                <h1 className="text-4xl md:text-5xl">
-                  <span>Hallå där</span>
-                  {session.user?.name && (
-                    <span>, {session.user.name.split(" ")[0]} </span>
-                  )}
-                  <span>👋</span>
-                </h1>
-                <p className="text-lg max-w-lg leading-snug mt-2">
-                  {positiveMessage}
-                </p>
-              </div>
-              <TimeFrameSelector />
-            </div>
-          </div>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </section>
-    );
+    return <></>;
   }
 
   if (error) {
     return (
       <section className="w-full flex items-center justify-center">
         <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-          <div className="flex flex-col md:flex-row md:justify-between items-center mb-0 md:mb-4">
-            <div className="flex w-full justify-between flex-col md:flex-row gap-4">
-              <div>
-                <h1 className="text-4xl md:text-5xl">
-                  <span>Hallå där</span>
-                  {session.user?.name && (
-                    <span>, {session.user.name.split(" ")[0]} </span>
-                  )}
-                  <span>👋</span>
-                </h1>
-                <p className="text-lg max-w-lg leading-snug mt-2">
-                  {positiveMessage}
-                </p>
-              </div>
-              <TimeFrameSelector />
-            </div>
-          </div>
-          <p className="text-center py-8 text-red-500">Error: {error.message}</p>
+          <p className="text-center py-8 text-red-500">
+            Error: {error.message}
+          </p>
         </div>
       </section>
     );
@@ -104,23 +67,6 @@ export function DashboardContent({
     return (
       <section className="w-full flex items-center justify-center">
         <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-          <div className="flex flex-col md:flex-row md:justify-between items-center mb-0 md:mb-4">
-            <div className="flex w-full justify-between flex-col md:flex-row gap-4">
-              <div>
-                <h1 className="text-4xl md:text-5xl">
-                  <span>Hallå där</span>
-                  {session.user?.name && (
-                    <span>, {session.user.name.split(" ")[0]} </span>
-                  )}
-                  <span>👋</span>
-                </h1>
-                <p className="text-lg max-w-lg leading-snug mt-2">
-                  {positiveMessage}
-                </p>
-              </div>
-              <TimeFrameSelector />
-            </div>
-          </div>
           <p className="text-center py-8">No data available</p>
         </div>
       </section>
@@ -130,7 +76,18 @@ export function DashboardContent({
   return (
     <section className="w-full flex items-center justify-center">
       <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-        <div className="flex flex-col md:flex-row md:justify-between items-center mb-0 md:mb-4">
+        <motion.div
+          className="flex flex-col md:flex-row md:justify-between items-center mb-0 md:mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            transition: {
+              opacity: { ease: "easeInOut", duration: 0.3 },
+              y: { type: "spring", stiffness: 300, damping: 24 },
+            },
+          }}
+        >
           <div className="flex w-full justify-between flex-col md:flex-row gap-4">
             <div>
               <h1 className="text-4xl md:text-5xl">
@@ -138,7 +95,30 @@ export function DashboardContent({
                 {session.user?.name && (
                   <span>, {session.user.name.split(" ")[0]} </span>
                 )}
-                <span>👋</span>
+                <motion.span
+                  className="inline-block cursor-grab"
+                  initial={{ rotate: 0 }}
+                  animate={{
+                    rotate: [0, 15, -15, 15, 0],
+                    transition: {
+                      duration: 1.5,
+                      ease: "easeInOut",
+                      times: [0, 0.2, 0.5, 0.8, 1],
+                      repeat: 0,
+                      delay: 0.1,
+                    },
+                  }}
+                  whileHover={{
+                    scale: 1.2,
+                    transition: {
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                    },
+                  }}
+                >
+                  👋
+                </motion.span>
               </h1>
               <p className="text-lg max-w-lg leading-snug mt-2">
                 {positiveMessage}
@@ -146,7 +126,7 @@ export function DashboardContent({
             </div>
             <TimeFrameSelector />
           </div>
-        </div>
+        </motion.div>
 
         <SummaryMetrics
           avgSatisfaction={surveyData.avgSatisfaction}
@@ -154,10 +134,7 @@ export function DashboardContent({
           timeframeNps={surveyData.timeframeNps}
         />
 
-        <NPSTrendChart
-          trendData={surveyData.trendData}
-          timeFrame={timeFrame}
-        />
+        <NPSTrendChart trendData={surveyData.trendData} timeFrame={timeFrame} />
 
         <div className="mt-8 flex flex-col md:flex-row md:justify-between">
           <h2 className="text-2xl md:text-3xl">Feedback svar</h2>
