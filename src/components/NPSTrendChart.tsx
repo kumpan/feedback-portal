@@ -75,16 +75,15 @@ const CustomChartTooltipContent = ({ active, payload }: TooltipProps) => {
           <span className="">NPS:</span> {data.nps}
         </p>
         <div className="mt-2 pt-2 border-t opacity-70">
-          <p className="text-xs text-gray-600">Riktmärken:</p>
-          <p className="text-xs text-top-quartile">
+          <p className="text-xs text-green-800">
             <span className="font-medium">Top:</span> +
             {industryData.topQuartile}
           </p>
-          <p className="text-xs text-industry-avg">
+          <p className="text-xs text-yellow-800">
             <span className="font-medium">Average:</span> +
             {industryData.industryAvg}
           </p>
-          <p className="text-xs text-bottom-quartile">
+          <p className="text-xs text-orange-800">
             <span className="font-medium">Bottom:</span> +
             {industryData.bottomQuartile}
           </p>

@@ -1,13 +1,4 @@
-import { TimeFrameSelector } from "@/components/TimeFrameSelector";
-import { NPSTrendChart } from "@/components/NPSTrendChart";
-import { SummaryMetrics } from "@/components/SummaryMetrics";
-import SurveyResponsesList from "@/components/SurveyResponsesList";
-import {
-  getTimeFrameStartDate,
-  processSurveyData,
-} from "@/app/utils/surveyUtils";
 import { getRandomPositiveMessage } from "@/app/utils/positiveMessages";
-import GenerateLink from "@/components/GenerateLink";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { TimeFrameProvider } from "@/context/TimeFrameContext";
@@ -55,9 +46,9 @@ export default async function Dashboard() {
         </div>
       </div>
       <TimeFrameProvider initialTimeFrame="last30days">
-        <DashboardContent 
-          session={session} 
-          positiveMessage={positiveMessage} 
+        <DashboardContent
+          session={session}
+          positiveMessage={positiveMessage}
           getSurveyData={getSurveyData}
         />
       </TimeFrameProvider>
