@@ -54,16 +54,18 @@ type MotionDivProps = HTMLMotionProps<"div">;
 
 function Card({ className, ...props }: MotionDivProps) {
   return (
-    <motion.div
-      data-slot="card"
-      className={cn("bg-card flex flex-col gap-1 rounded-xl py-6", className)}
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      layout
-      {...props}
-    />
+    <AnimatePresence>
+      <motion.div
+        data-slot="card"
+        className={cn("bg-card flex flex-col gap-1 rounded-xl py-6", className)}
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        layout
+        {...props}
+      />
+    </AnimatePresence>
   );
 }
 
