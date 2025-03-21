@@ -71,20 +71,20 @@ const CustomChartTooltipContent = ({ active, payload }: TooltipProps) => {
     return (
       <div className="bg-white p-3 border rounded-md shadow-md">
         <p className="font-medium">{data.formattedDate}</p>
-        <p className="text-sm">
-          <span className="font-medium">NPS:</span> {data.nps}
+        <p className="text-lg">
+          <span className="">NPS:</span> {data.nps}
         </p>
-        <div className="mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-600">Branschriktmärken:</p>
-          <p className="text-xs">
+        <div className="mt-2 pt-2 border-t opacity-70">
+          <p className="text-xs text-gray-600">Riktmärken:</p>
+          <p className="text-xs text-top-quartile">
             <span className="font-medium">Top:</span> +
             {industryData.topQuartile}
           </p>
-          <p className="text-xs">
+          <p className="text-xs text-industry-avg">
             <span className="font-medium">Average:</span> +
             {industryData.industryAvg}
           </p>
-          <p className="text-xs">
+          <p className="text-xs text-bottom-quartile">
             <span className="font-medium">Bottom:</span> +
             {industryData.bottomQuartile}
           </p>
@@ -100,7 +100,6 @@ export function NPSTrendChart({
   timeFrame = "last30days",
   industryData = defaultIndustryData,
 }: NPSTrendChartProps) {
-  // Filter data based on the selected time frame
   const startDate = getTimeFrameStartDate(timeFrame);
 
   const filteredData = trendData.filter((item) => {
@@ -156,16 +155,6 @@ export function NPSTrendChart({
                 content={<CustomChartTooltipContent />}
               />
 
-              <Line
-                dataKey="nps"
-                name="NPS Score"
-                type="monotone"
-                stroke="var(--color-nps)"
-                strokeWidth={2}
-                dot={true}
-                activeDot={{ r: 6 }}
-              />
-
               {/* Reference lines for industry benchmarks */}
               <ReferenceLine
                 y={industryData.industryAvg}
@@ -184,6 +173,15 @@ export function NPSTrendChart({
                 stroke="var(--color-bottom-quartile)"
                 strokeDasharray="8 8"
                 label={undefined}
+              />
+              <Line
+                dataKey="nps"
+                name="NPS Score"
+                type="monotone"
+                stroke="var(--color-nps)"
+                strokeWidth={2}
+                dot={true}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           ) : (

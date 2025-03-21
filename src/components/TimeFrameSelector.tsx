@@ -7,25 +7,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useTimeFrame } from "@/context/TimeFrameContext";
 
 export function TimeFrameSelector() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [timeFrame, setTimeFrame] = useState(
-    searchParams.get("timeframe") || "last30days"
-  );
-
-  useEffect(() => {
-    const currentParams = new URLSearchParams(searchParams.toString());
-    currentParams.set("timeframe", timeFrame);
-    router.push(`/dashboard?${currentParams.toString()}`);
-  }, [timeFrame, router, searchParams]);
+  const { timeFrame, setTimeFrame } = useTimeFrame();
 
   return (
     <div className="">
-      <Select value={timeFrame} onValueChange={(value) => setTimeFrame(value)}>
+      <Select 
+        value={timeFrame} 
+        onValueChange={(value) => setTimeFrame(value as "last7days" | "last30days" | "last6months" | "last1year" | "all")}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Välj tidsram" />
         </SelectTrigger>

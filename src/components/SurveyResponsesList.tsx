@@ -45,9 +45,7 @@ export default function SurveyResponsesList({
   }
 
   return (
-    <div className="space-y-3 mt-8">
-      <h2 className="text-2xl md:text-3xl">Feedback svar</h2>
-
+    <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
         {responses.map((response) => (
           <div
