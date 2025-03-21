@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 
 function HomeContent() {
   const router = useRouter();
@@ -139,8 +140,34 @@ function HomeContent() {
       <section className="w-full flex items-center justify-center">
         <div className="flex max-w-3xl flex-col w-full px-4 md:px-8 py-12 md:py-16">
           <div className="space-y-2 max-w-lg">
-            <h1 className="text-4xl md:text-5xl">Hej 👋</h1>
-            <p className="text-lg">
+            <h1 className="text-4xl md:text-5xl">
+              Hej {surveyLink?.clientName ? ` ${surveyLink.clientName}` : ""}
+              <motion.span
+                className="inline-block cursor-grab ml-2"
+                initial={{ rotate: 0 }}
+                animate={{
+                  rotate: [0, 15, -15, 15, 0],
+                  transition: {
+                    duration: 1.5,
+                    ease: "easeInOut",
+                    times: [0, 0.2, 0.5, 0.8, 1],
+                    repeat: 0,
+                    delay: 0.1,
+                  },
+                }}
+                whileHover={{
+                  scale: 1.2,
+                  transition: {
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25,
+                  },
+                }}
+              >
+                👋
+              </motion.span>
+            </h1>
+            <p className="text-lg leading-snug">
               På Kumpan strävar vi alltid efter att bli bättre, så dela gärna
               med dig av din upplevelse när vi nyligen arbetade tillsammans.
             </p>
