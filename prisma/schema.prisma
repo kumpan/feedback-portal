@@ -75,3 +75,28 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// Employee Data Models
+model Employee {
+  id            String    @id @default(cuid())
+  employeeId    String    @unique // External ID from Hailey HR
+  firstName     String
+  lastName      String
+  email         String?
+  startDate     DateTime
+  endDate       DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  syncedAt      DateTime  @default(now())
+}
+
+model EmployeeDataSync {
+  id            String    @id @default(cuid())
+  syncDate      DateTime  @default(now())
+  success       Boolean
+  errorMessage  String?   @db.Text
+  recordsAdded  Int       @default(0)
+  recordsUpdated Int      @default(0)
+  apiKeyExpiry  DateTime?
+}

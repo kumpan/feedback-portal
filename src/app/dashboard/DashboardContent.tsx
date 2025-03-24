@@ -10,6 +10,8 @@ import { useTimeFrame } from "@/context/TimeFrameContext";
 import { Session } from "next-auth";
 import { SurveyData } from "@/app/actions/surveyActions";
 import { motion } from "framer-motion";
+import { EmployeeMetrics } from "@/components/EmployeeMetrics";
+import { getEmployeeRetentionData, EmployeeRetentionData } from "@/app/actions/employeeActions";
 
 interface DashboardContentProps {
   session: Session;
@@ -26,6 +28,8 @@ export function DashboardContent({
   const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [employeeData, setEmployeeData] = useState<EmployeeRetentionData | null>(null);
+  const [employeeDataLoading, setEmployeeDataLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
@@ -46,6 +50,33 @@ export function DashboardContent({
 
     fetchData();
   }, [timeFrame, getSurveyData]);
+
+  useEffect(() => {
+    async function fetchEmployeeData() {
+      setEmployeeDataLoading(true);
+      try {
+        const currentYear = new Date().getFullYear();
+        const data = await getEmployeeRetentionData(currentYear);
+        setEmployeeData(data);
+      } catch (err) {
+        console.error("Error fetching employee data:", err);
+      } finally {
+        setEmployeeDataLoading(false);
+      }
+    }
+
+    fetchEmployeeData();
+  }, []);
+
+  const handleEmployeeDataSync = async () => {
+    try {
+      const currentYear = new Date().getFullYear();
+      const data = await getEmployeeRetentionData(currentYear);
+      setEmployeeData(data);
+    } catch (err) {
+      console.error("Error refreshing employee data:", err);
+    }
+  };
 
   if (loading && !surveyData) {
     return <></>;
@@ -135,6 +166,32 @@ export function DashboardContent({
         />
 
         <NPSTrendChart trendData={surveyData.trendData} timeFrame={timeFrame} />
+
+        {/* Employee Retention Section */}
+        <motion.div 
+          className="mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ 
+            opacity: 1, 
+            y: 0,
+            transition: {
+              delay: 0.3,
+              duration: 0.5
+            }
+          }}
+        >
+          <h2 className="text-2xl md:text-3xl mb-4">Employee Retention</h2>
+          {employeeData && !employeeDataLoading ? (
+            <EmployeeMetrics 
+              retentionData={employeeData} 
+              onSync={handleEmployeeDataSync} 
+            />
+          ) : (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          )}
+        </motion.div>
 
         <div className="mt-8 flex flex-col md:flex-row md:justify-between">
           <h2 className="text-2xl md:text-3xl">Feedback svar</h2>
