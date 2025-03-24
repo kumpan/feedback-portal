@@ -2,7 +2,7 @@
   "name": "Feedback Portal | Kumpan",
   "short_name": "Feedback",
   "description": "Kumpan Feedback Portal, built by the lovely people at Kumpan",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "id": "feedback-portal/v0.1",
   "display": "standalone",
   "background_color": "#D0CEFF",
