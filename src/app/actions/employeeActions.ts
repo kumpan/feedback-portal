@@ -7,33 +7,8 @@ import {
   ApiKeyValidationResult,
 } from "@/lib/haileyhr";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prismaWithModels = prisma as any;
-
-/*
-interface Employee {
-  id: string;
-  employeeId: string;
-  firstName: string;
-  lastName: string;
-  email: string | null;
-  startDate: Date;
-  endDate: Date | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface EmployeeDataSync {
-  id: string;
-  syncDate: Date;
-  success: boolean;
-  message: string | null;
-  recordsAdded: number;
-  recordsUpdated: number;
-  apiKeyStatus: string;
-  apiKeyExpiry: Date | null;
-}
-*/
 
 export interface EmployeeRetentionData {
   startOfYearCount: number;
