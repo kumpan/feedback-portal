@@ -19,6 +19,7 @@ import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import EmployeeDataSync from "@/components/EmployeeDataSync";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { UserIcon, MessageSquare } from "lucide-react";
 
 interface DashboardContentProps {
   session: Session;
@@ -226,8 +227,18 @@ export function DashboardContent({
           <div className="flex mb-2 justify-between flex-col md:flex-row">
             <div className="w-auto">
               <TabsList className="mb-2">
-                <TabsTrigger value="feedback">Feedback</TabsTrigger>
-                <TabsTrigger value="employees">Anställda</TabsTrigger>
+                <TabsTrigger
+                  value="feedback"
+                  icon={<MessageSquare className="h-4 w-4" />}
+                >
+                  Feedback
+                </TabsTrigger>
+                <TabsTrigger
+                  value="employees"
+                  icon={<UserIcon className="h-4 w-4" />}
+                >
+                  Anställda
+                </TabsTrigger>
               </TabsList>
             </div>
             {activeTab === "feedback" && <TimeFrameSelector />}

@@ -78,9 +78,10 @@ interface TabsTriggerProps {
   value: string;
   children: ReactNode;
   className?: string;
+  icon?: ReactNode;
 }
 
-export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
+export function TabsTrigger({ value, children, className, icon }: TabsTriggerProps) {
   const { activeTab, setActiveTab } = useTabsContext();
   const isActive = activeTab === value;
 
@@ -92,11 +93,13 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       data-state={isActive ? "active" : "inactive"}
       onClick={() => setActiveTab(value)}
       className={cn(
-        "inline-flex cursor-pointer gap-1 items-center text-background justify-center whitespace-nowrap rounded-sm px-4 h-full ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex cursor-pointer gap-2 items-center text-background justify-center whitespace-nowrap rounded-sm h-full ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        icon ? "pl-3 pr-4" : "px-4", 
         isActive ? "bg-background text-foreground" : "hover:bg-background/30",
         className
       )}
     >
+      {icon && <span className="flex items-center">{icon}</span>}
       {children}
     </button>
   );
