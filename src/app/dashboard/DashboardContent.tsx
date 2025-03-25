@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { TimeFrameSelector } from "@/components/TimeFrameSelector";
 import { NPSTrendChart } from "@/components/NPSTrendChart";
 import { SummaryMetrics } from "@/components/SummaryMetrics";
@@ -11,12 +11,32 @@ import { Session } from "next-auth";
 import { SurveyData } from "@/app/actions/surveyActions";
 import { motion } from "framer-motion";
 import { EmployeeMetrics } from "@/components/EmployeeMetrics";
-import { getEmployeeRetentionData, EmployeeRetentionData } from "@/app/actions/employeeActions";
+import {
+  getEmployeeRetentionData,
+  EmployeeRetentionData,
+} from "@/app/actions/employeeActions";
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import EmployeeDataSync from "@/components/EmployeeDataSync";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface DashboardContentProps {
   session: Session;
   positiveMessage: string;
   getSurveyData: (timeFrame: string) => Promise<SurveyData>;
+}
+
+interface Employee {
+  id: string;
+  employeeId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  startDate: string;
+  endDate: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function DashboardContent({
@@ -28,8 +48,15 @@ export function DashboardContent({
   const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [employeeData, setEmployeeData] = useState<EmployeeRetentionData | null>(null);
+  const [employeeData, setEmployeeData] =
+    useState<EmployeeRetentionData | null>(null);
   const [employeeDataLoading, setEmployeeDataLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("feedback");
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [useMock, setUseMock] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -51,31 +78,63 @@ export function DashboardContent({
     fetchData();
   }, [timeFrame, getSurveyData]);
 
-  useEffect(() => {
-    async function fetchEmployeeData() {
-      setEmployeeDataLoading(true);
-      try {
-        const currentYear = new Date().getFullYear();
-        const data = await getEmployeeRetentionData(currentYear);
-        setEmployeeData(data);
-      } catch (err) {
-        console.error("Error fetching employee data:", err);
-      } finally {
-        setEmployeeDataLoading(false);
-      }
-    }
-
-    fetchEmployeeData();
-  }, []);
-
-  const handleEmployeeDataSync = async () => {
+  const fetchEmployeeData = useCallback(async () => {
+    setEmployeeDataLoading(true);
+    setError(null);
     try {
-      const currentYear = new Date().getFullYear();
       const data = await getEmployeeRetentionData(currentYear);
       setEmployeeData(data);
     } catch (err) {
-      console.error("Error refreshing employee data:", err);
+      console.error("Error fetching employee data:", err);
+    } finally {
+      setEmployeeDataLoading(false);
     }
+  }, [currentYear]);
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch("/api/test-employees");
+      const data = await response.json();
+      if (data.success) {
+        setEmployees(data.employees);
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "employees") {
+      fetchEmployeeData();
+      fetchEmployees();
+    }
+  }, [activeTab, fetchEmployeeData]);
+
+  const handleTestSync = async () => {
+    setIsSyncing(true);
+    setSyncMessage("Synkroniserar anställda...");
+    try {
+      const response = await fetch("/api/sync-employees", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ forceFullSync: true, useMock }),
+      });
+      const data = await response.json();
+      setSyncMessage(data.message);
+      fetchEmployees();
+      fetchEmployeeData();
+    } catch (error) {
+      console.error("Error syncing employees:", error);
+      setSyncMessage("Fel vid synkronisering av anställda");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
   };
 
   if (loading && !surveyData) {
@@ -98,7 +157,7 @@ export function DashboardContent({
     return (
       <section className="w-full flex items-center justify-center">
         <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-          <p className="text-center py-8">No data available</p>
+          <p className="text-center py-8">Inga data tillgängliga</p>
         </div>
       </section>
     );
@@ -108,7 +167,7 @@ export function DashboardContent({
     <section className="w-full flex items-center justify-center">
       <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
         <motion.div
-          className="flex flex-col md:flex-row md:justify-between items-center mb-0 md:mb-4"
+          className="flex flex-col md:flex-row md:justify-between items-center mb-0"
           initial={{ opacity: 0, y: 20 }}
           animate={{
             opacity: 1,
@@ -155,49 +214,184 @@ export function DashboardContent({
                 {positiveMessage}
               </p>
             </div>
-            <TimeFrameSelector />
           </div>
         </motion.div>
 
-        <SummaryMetrics
-          avgSatisfaction={surveyData.avgSatisfaction}
-          avgCommunication={surveyData.avgCommunication}
-          timeframeNps={surveyData.timeframeNps}
-        />
-
-        <NPSTrendChart trendData={surveyData.trendData} timeFrame={timeFrame} />
-
-        {/* Employee Retention Section */}
-        <motion.div 
-          className="mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ 
-            opacity: 1, 
-            y: 0,
-            transition: {
-              delay: 0.3,
-              duration: 0.5
-            }
-          }}
+        <Tabs
+          defaultValue="feedback"
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="mt-4"
         >
-          <h2 className="text-2xl md:text-3xl mb-4">Employee Retention</h2>
-          {employeeData && !employeeDataLoading ? (
-            <EmployeeMetrics 
-              retentionData={employeeData} 
-              onSync={handleEmployeeDataSync} 
-            />
-          ) : (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <div className="flex mb-2 justify-between flex-col md:flex-row">
+            <div className="w-auto">
+              <TabsList className="mb-2">
+                <TabsTrigger value="feedback">Feedback</TabsTrigger>
+                <TabsTrigger value="employees">Anställda</TabsTrigger>
+              </TabsList>
             </div>
-          )}
-        </motion.div>
+            {activeTab === "feedback" && <TimeFrameSelector />}
+          </div>
+          <TabsContent value="feedback" className="space-y-2 md:space-y-4">
+            <SummaryMetrics
+              avgSatisfaction={surveyData.avgSatisfaction}
+              avgCommunication={surveyData.avgCommunication}
+              timeframeNps={surveyData.timeframeNps}
+            />
 
-        <div className="mt-8 flex flex-col md:flex-row md:justify-between">
-          <h2 className="text-2xl md:text-3xl">Feedback svar</h2>
-          <GenerateLink />
-        </div>
-        <SurveyResponsesList responses={surveyData.responses} />
+            <NPSTrendChart
+              trendData={surveyData.trendData}
+              timeFrame={timeFrame}
+            />
+
+            <div className="mt-8 flex flex-col md:flex-row md:justify-between">
+              <h2 className="text-2xl md:text-3xl">Feedback svar</h2>
+              <GenerateLink />
+            </div>
+            <SurveyResponsesList responses={surveyData.responses} />
+          </TabsContent>
+
+          <TabsContent value="employees" className="space-y-6">
+            {employeeDataLoading ? (
+              <div>
+                <h2 className="text-3xl md:text-4xl">Personaldata</h2>
+              </div>
+            ) : employeeData ? (
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                  <h2 className="text-3xl md:text-4xl">Personaldata</h2>
+                  <p className="text-muted-foreground">
+                    {employeeData?.lastSyncDate ? (
+                      <>
+                        Senaste synk:{" "}
+                        {new Date(
+                          employeeData.lastSyncDate
+                        ).toLocaleDateString()}
+                      </>
+                    ) : (
+                      <>Aldrig synkroniserad</>
+                    )}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    className="px-4"
+                    size="lg"
+                    onClick={() => setCurrentYear((prev) => prev - 1)}
+                  >
+                    ←
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentYear(new Date().getFullYear())}
+                  >
+                    Nuvarande år
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="px-4"
+                    size="lg"
+                    onClick={() => setCurrentYear((prev) => prev + 1)}
+                    disabled={currentYear >= new Date().getFullYear()}
+                  >
+                    →
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Card className="p-6">
+                <p>
+                  Inga personaldata tillgängliga. Vänligen synkronisera data
+                  först.
+                </p>
+              </Card>
+            )}
+
+            {employeeData && (
+              <div className="flex gap-6 flex-col">
+                <div>
+                  <EmployeeMetrics retentionData={employeeData} />
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-medium mb-4">
+                    Datasynkronisering
+                  </h3>
+                  <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
+                </div>
+              </div>
+            )}
+
+            {/* Employee Date Testing Section */}
+            <div className="mt-8">
+              <h3 className="text-xl font-medium mb-4">Testning</h3>
+              <Card className="p-6">
+                <div className="flex items-center gap-4 mb-6">
+                  <Button onClick={handleTestSync} disabled={isSyncing}>
+                    {isSyncing ? "Laddar..." : "Force full synkning"}
+                  </Button>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="useMock"
+                      checked={useMock}
+                      onChange={(e) => setUseMock(e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                    <label htmlFor="useMock">Använd testdata</label>
+                  </div>
+
+                  {syncMessage && (
+                    <div className="text-sm text-green-600">{syncMessage}</div>
+                  )}
+                </div>
+
+                <div className="overflow-x-auto border rounded-2xl">
+                  <table className="min-w-full bg-white">
+                    <thead>
+                      <tr>
+                        <th className="py-2 px-4 border-b">Namn</th>
+                        <th className="py-2 px-4 border-b">Startdatum</th>
+                        <th className="py-2 px-4 border-b">Slutdatum</th>
+                        <th className="py-2 px-4 border-b">Aktiv</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {employees.map((employee) => (
+                        <tr key={employee.id}>
+                          <td className="py-2 text-center px-4 border-b">
+                            {employee.firstName} {employee.lastName}
+                          </td>
+                          <td className="py-2 text-center px-4 border-b">
+                            {employee.startDate}
+                          </td>
+                          <td className="py-2 text-center px-4 border-b">
+                            {employee.endDate || "N/A"}
+                          </td>
+                          <td className="py-2 text-center px-4 border-b">
+                            <span
+                              className={`px-2 py-1 rounded text-xs ${
+                                employee.isActive
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {employee.isActive ? "Ja" : "Nej"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </section>
   );

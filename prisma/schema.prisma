@@ -30,7 +30,6 @@ model SurveyResponse {
   updatedAt         DateTime    @updatedAt
 }
 
-// NextAuth Models
 model Account {
   id                 String  @id @default(cuid())
   userId             String
@@ -88,15 +87,20 @@ model Employee {
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  syncedAt      DateTime  @default(now())
+
+  @@index([startDate, endDate])
+  @@index([isActive])
 }
 
 model EmployeeDataSync {
   id            String    @id @default(cuid())
   syncDate      DateTime  @default(now())
   success       Boolean
-  errorMessage  String?   @db.Text
+  message       String?   @db.Text
   recordsAdded  Int       @default(0)
   recordsUpdated Int      @default(0)
+  apiKeyStatus  String    @default("unknown")
   apiKeyExpiry  DateTime?
+
+  @@index([syncDate])
 }

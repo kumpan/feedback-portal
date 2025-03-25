@@ -118,7 +118,6 @@ export default function SurveyResponsesList({
                 transition: { duration: 0.2 },
               }}
               custom={index}
-              layout
             >
               <div className="p-4">
                 <motion.div
