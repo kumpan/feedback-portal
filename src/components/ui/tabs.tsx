@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 type TabsContextType = {
   activeTab: string;
@@ -65,7 +66,7 @@ export function TabsList({ children, className }: TabsListProps) {
   return (
     <div
       className={cn(
-        "inline-flex h-12 items-center justify-center rounded-lg bg-foreground p-1 gap-1",
+        "inline-flex h-12 items-center justify-center rounded-lg bg-foreground p-1 gap-1 relative",
         className
       )}
     >
@@ -81,7 +82,12 @@ interface TabsTriggerProps {
   icon?: ReactNode;
 }
 
-export function TabsTrigger({ value, children, className, icon }: TabsTriggerProps) {
+export function TabsTrigger({
+  value,
+  children,
+  className,
+  icon,
+}: TabsTriggerProps) {
   const { activeTab, setActiveTab } = useTabsContext();
   const isActive = activeTab === value;
 
@@ -93,14 +99,29 @@ export function TabsTrigger({ value, children, className, icon }: TabsTriggerPro
       data-state={isActive ? "active" : "inactive"}
       onClick={() => setActiveTab(value)}
       className={cn(
-        "inline-flex cursor-pointer gap-2 items-center text-background justify-center whitespace-nowrap rounded-sm h-full ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-        icon ? "pl-3 pr-4" : "px-4", 
-        isActive ? "bg-background text-foreground" : "hover:bg-background/30",
+        "inline-flex cursor-pointer gap-2 items-center justify-center whitespace-nowrap rounded-sm h-full ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative",
+        icon ? "pl-3 pr-4" : "px-4",
+        isActive
+          ? "text-foreground"
+          : "text-background hover:text-background/80",
         className
       )}
+      style={{
+        WebkitTapHighlightColor: "transparent",
+      }}
     >
-      {icon && <span className="flex items-center">{icon}</span>}
-      {children}
+      {isActive && (
+        <motion.span
+          layoutId="tabBackground"
+          className="absolute inset-0 z-0 bg-background"
+          style={{ borderRadius: 6 }}
+          transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+        />
+      )}
+      <div className="relative z-10 flex items-center gap-2">
+        {icon}
+        {children}
+      </div>
     </button>
   );
 }

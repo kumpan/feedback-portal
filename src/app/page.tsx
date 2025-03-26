@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 function HomeContent() {
   const router = useRouter();
@@ -178,30 +178,49 @@ function HomeContent() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* NPS Question (0-10) */}
-            <h2 className="text-xl mb-4 md:text-2xl">
-              Hur troligt är det att du rekommenderar oss?
-            </h2>
-            <div className="flex gap-1">
-              {Array.from({ length: 11 }, (_, i) => (
-                <label
-                  key={i}
-                  htmlFor={`nps-${i}`}
-                  className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
-                >
-                  <input
-                    type="radio"
-                    name="nps"
-                    value={i}
-                    id={`nps-${i}`}
-                    className="sr-only"
-                    required
-                    checked={formData.nps === i.toString()}
-                    onChange={handleInputChange}
-                  />
-                  <p className="text-lg md:text-xl">{i}</p>
-                </label>
-              ))}
-            </div>
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-xl mb-4 md:text-2xl">
+                  Hur troligt är det att du rekommenderar oss?
+                </h2>
+                <div className="flex gap-1">
+                  {Array.from({ length: 11 }, (_, i) => (
+                    <motion.div
+                      className="w-full"
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.1 + i * 0.03,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <label
+                        htmlFor={`nps-${i}`}
+                        className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                      >
+                        <input
+                          type="radio"
+                          name="nps"
+                          value={i}
+                          id={`nps-${i}`}
+                          className="sr-only"
+                          required
+                          checked={formData.nps === i.toString()}
+                          onChange={handleInputChange}
+                        />
+                        <p className="text-lg md:text-xl">{i}</p>
+                      </label>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
             <div className="flex justify-between w-full opacity-70">
               <p className="text-sm">Inte alls troligt</p>
@@ -212,31 +231,51 @@ function HomeContent() {
             <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* Satisfaction Question (1-5) */}
-            <h2 className="text-xl mb-4 md:text-2xl">
-              Hur nöjd är du med våra tjänster överlag?
-            </h2>
+            <AnimatePresence>
+              <motion.div
+                className="w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <h2 className="text-xl mb-4 md:text-2xl">
+                  Hur nöjd är du med våra tjänster överlag?
+                </h2>
 
-            <div className="flex gap-1">
-              {Array.from({ length: 5 }, (_, i) => (
-                <label
-                  key={i + 1}
-                  htmlFor={`sat-${i + 1}`}
-                  className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
-                >
-                  <input
-                    type="radio"
-                    name="satisfaction"
-                    value={i + 1}
-                    id={`sat-${i + 1}`}
-                    className="sr-only"
-                    required
-                    checked={formData.satisfaction === (i + 1).toString()}
-                    onChange={handleInputChange}
-                  />
-                  <p className="text-lg md:text-xl">{i + 1}</p>
-                </label>
-              ))}
-            </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <motion.div
+                      key={i + 1}
+                      className="w-full"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.3 + i * 0.05,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <label
+                        htmlFor={`sat-${i + 1}`}
+                        className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                      >
+                        <input
+                          type="radio"
+                          name="satisfaction"
+                          value={i + 1}
+                          id={`sat-${i + 1}`}
+                          className="sr-only"
+                          required
+                          checked={formData.satisfaction === (i + 1).toString()}
+                          onChange={handleInputChange}
+                        />
+                        <p className="text-lg md:text-xl">{i + 1}</p>
+                      </label>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
             <div className="flex justify-between w-full opacity-70">
               <p className="text-sm">Mycket missnöjd</p>
@@ -247,71 +286,111 @@ function HomeContent() {
             <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* Communication Question (1-5) */}
-            <h2 className="text-xl mb-4 md:text-2xl">
-              Hur skulle du bedöma vår kommunikation genom projektet?
-            </h2>
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <h2 className="text-xl mb-4 md:text-2xl">
+                  Hur skulle du bedöma vår kommunikation genom projektet?
+                </h2>
 
-            <div className="flex gap-1">
-              {Array.from({ length: 5 }, (_, i) => (
-                <label
-                  key={i + 1}
-                  htmlFor={`com-${i + 1}`}
-                  className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
-                >
-                  <input
-                    type="radio"
-                    name="communication"
-                    value={i + 1}
-                    id={`com-${i + 1}`}
-                    className="sr-only"
-                    required
-                    checked={formData.communication === (i + 1).toString()}
-                    onChange={handleInputChange}
-                  />
-                  <p className="text-lg md:text-xl">{i + 1}</p>
-                </label>
-              ))}
-            </div>
-
-            <div className="flex justify-between w-full opacity-70">
-              <p className="text-sm">Mycket missnöjd</p>
-              <p className="text-sm">Mycket nöjd</p>
-            </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <motion.div
+                      key={i + 1}
+                      className="w-full"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.5 + i * 0.05,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <label
+                        htmlFor={`com-${i + 1}`}
+                        className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                      >
+                        <input
+                          type="radio"
+                          name="communication"
+                          value={i + 1}
+                          id={`com-${i + 1}`}
+                          className="sr-only"
+                          required
+                          checked={
+                            formData.communication === (i + 1).toString()
+                          }
+                          onChange={handleInputChange}
+                        />
+                        <p className="text-lg md:text-xl">{i + 1}</p>
+                      </label>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
             {/* Divider */}
             <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* What We Did Well (Text) */}
-            <h2 className="text-xl mb-4 md:text-2xl">Vad gjorde vi bra?</h2>
-            <Textarea
-              name="whatWeDidWell"
-              placeholder="Skriv ditt svar..."
-              value={formData.whatWeDidWell}
-              onChange={handleInputChange}
-            />
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+              >
+                <h2 className="text-xl mb-4 md:text-2xl">Vad gjorde vi bra?</h2>
+                <Textarea
+                  name="whatWeDidWell"
+                  placeholder="Skriv ditt svar..."
+                  value={formData.whatWeDidWell}
+                  onChange={handleInputChange}
+                />
+              </motion.div>
+            </AnimatePresence>
 
             {/* Divider */}
             <div className="h-0.5 w-full bg-border/10 my-8 rounded-full" />
 
             {/* What We Can Improve (Text) */}
-            <h2 className="text-xl mb-4 md:text-2xl">
-              Vad kan vi göra bättre?
-            </h2>
-            <Textarea
-              name="whatWeCanImprove"
-              placeholder="Skriv ditt svar..."
-              value={formData.whatWeCanImprove}
-              onChange={handleInputChange}
-            />
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+              >
+                <h2 className="text-xl mb-4 md:text-2xl">
+                  Vad kan vi förbättra?
+                </h2>
+                <Textarea
+                  name="whatWeCanImprove"
+                  placeholder="Skriv ditt svar..."
+                  value={formData.whatWeCanImprove}
+                  onChange={handleInputChange}
+                />
+              </motion.div>
+            </AnimatePresence>
 
-            <Button
-              type="submit"
-              className="w-full mt-6"
-              size="lg"
-              disabled={isLoading}
+            {/* Submit Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="pt-6"
             >
-              {isLoading ? "Skickar..." : "Skicka"}
-            </Button>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+                size="lg"
+              >
+                {isLoading ? "Skickar..." : "Skicka feedback"}
+              </Button>
+            </motion.div>
           </form>
         </div>
       </section>
