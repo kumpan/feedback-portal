@@ -70,7 +70,7 @@ export function TabsList({ children, className }: TabsListProps) {
         className
       )}
     >
-      {children}
+      <div className="overflow-hidden rounded-sm h-full">{children}</div>
     </div>
   );
 }
@@ -115,7 +115,7 @@ export function TabsTrigger({
           layoutId="tabBackground"
           className="absolute inset-0 z-0 bg-background"
           style={{ borderRadius: 6 }}
-          transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+          transition={{ type: "spring", stiffness: 250, damping: 20 }}
         />
       )}
       <div className="relative z-10 flex items-center gap-2">
