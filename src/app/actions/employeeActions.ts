@@ -34,33 +34,37 @@ export interface SyncResult {
 export async function syncEmployeeData(
   forceFullSync: boolean = false
 ): Promise<SyncResult> {
-  console.log("Starting syncEmployeeData function...");
+  console.log("Startar synkronisering av personaldata...");
 
   const apiKey = process.env.HAILEY_HR_API_KEY;
   console.log(
-    `API Key from environment: ${apiKey ? "Present (masked)" : "Not present"}`
+    `API-nyckel från miljö: ${
+      apiKey ? "Present (maskerad)" : "Inte närvarande"
+    }`
   );
 
   const api = new HaileyHRApi(apiKey);
-  console.log("Created HaileyHRApi instance");
+  console.log("Skapade HaileyHRApi-instans");
 
   let recordsAdded = 0;
   let recordsUpdated = 0;
   let apiKeyExpiry: Date | undefined;
 
   try {
-    console.log("Checking if API key is valid...");
+    console.log("Kontrollerar om API-nyckeln är giltig...");
     const apiKeyStatus: ApiKeyValidationResult = await api.isApiKeyValid();
-    console.log("API key validation result:", apiKeyStatus);
+    console.log("API-nyckelvalideringsresultat:", apiKeyStatus);
 
     if (!apiKeyStatus.valid) {
-      console.log("API key is not valid, logging sync attempt with failure");
+      console.log(
+        "API-nyckeln är inte giltig, loggar synkroniseringsförsök med fel"
+      );
 
       await prismaWithModels.employeeDataSync.create({
         data: {
           syncDate: new Date(),
           success: false,
-          message: apiKeyStatus.message || "Invalid or expired API key",
+          message: apiKeyStatus.message || "Ogiltig API-nyckel",
           recordsAdded: 0,
           recordsUpdated: 0,
           apiKeyStatus: "expired",
@@ -70,7 +74,7 @@ export async function syncEmployeeData(
 
       return {
         success: false,
-        message: apiKeyStatus.message || "Invalid or expired API key",
+        message: apiKeyStatus.message || "Ogiltig API-nyckel",
         recordsAdded: 0,
         recordsUpdated: 0,
         apiKeyStatus: "expired",
@@ -78,11 +82,11 @@ export async function syncEmployeeData(
     }
 
     apiKeyExpiry = apiKeyStatus.expiryDate;
-    console.log("API key is valid, expiry date:", apiKeyExpiry);
+    console.log("API-nyckeln är giltig, utgångsdatum:", apiKeyExpiry);
 
     if (forceFullSync) {
       console.log(
-        "Force full sync requested, clearing all existing employee data"
+        "Tvingad fullständig synkronisering begärd, rensar all befintlig personaldata"
       );
       await prismaWithModels.employee.deleteMany({
         where: {},
@@ -91,7 +95,7 @@ export async function syncEmployeeData(
 
     let lastSuccessfulSync = null;
     if (!forceFullSync) {
-      console.log("Checking for last successful sync...");
+      console.log("Kontrollerar efter senaste lyckad synkronisering...");
       lastSuccessfulSync = await prismaWithModels.employeeDataSync.findFirst({
         where: {
           success: true,
@@ -99,16 +103,16 @@ export async function syncEmployeeData(
         },
         orderBy: { syncDate: "desc" },
       });
-      console.log("Last successful sync:", lastSuccessfulSync);
+      console.log("Senaste lyckad synkronisering:", lastSuccessfulSync);
     }
 
-    console.log("Fetching employees from Hailey HR API...");
+    console.log("Hämtar anställda från Hailey HR API...");
     const employees = await api.getEmployees();
-    console.log(`Fetched ${employees.length} employees from API`);
+    console.log(`Hämtade ${employees.length} anställda från API`);
 
     if (lastSuccessfulSync && !forceFullSync) {
       console.log(
-        `Performing incremental sync since ${lastSuccessfulSync.syncDate}`
+        `Utför inkrementell synkronisering sedan ${lastSuccessfulSync.syncDate}`
       );
 
       const lastSyncDate = lastSuccessfulSync.syncDate;
@@ -138,7 +142,7 @@ export async function syncEmployeeData(
                 transformedEmployee.endDate.getTime())
           ) {
             console.log(
-              `Updating employee ${employee.id} (${employee.firstName} ${employee.lastName})`
+              `Uppdaterar anställd ${employee.id} (${employee.firstName} ${employee.lastName})`
             );
             await prismaWithModels.employee.update({
               where: { id: existingEmployee.id },
@@ -155,7 +159,7 @@ export async function syncEmployeeData(
           }
         } else {
           console.log(
-            `Creating new employee ${employee.id} (${employee.firstName} ${employee.lastName})`
+            `Skapar ny anställd ${employee.id} (${employee.firstName} ${employee.lastName})`
           );
           await prismaWithModels.employee.create({
             data: {
@@ -172,7 +176,7 @@ export async function syncEmployeeData(
         }
       }
     } else {
-      console.log("Performing full sync");
+      console.log("Utför fullständig synkronisering");
 
       for (const employee of employees) {
         const transformedEmployee = HaileyHRApi.transformEmployeeData(employee);
@@ -183,7 +187,7 @@ export async function syncEmployeeData(
 
         if (existingEmployee) {
           console.log(
-            `Updating employee ${employee.id} (${employee.firstName} ${employee.lastName})`
+            `Uppdaterar anställd ${employee.id} (${employee.firstName} ${employee.lastName})`
           );
           await prismaWithModels.employee.update({
             where: { id: existingEmployee.id },
@@ -199,7 +203,7 @@ export async function syncEmployeeData(
           recordsUpdated++;
         } else {
           console.log(
-            `Creating new employee ${employee.id} (${employee.firstName} ${employee.lastName})`
+            `Skapar ny anställd ${employee.id} (${employee.firstName} ${employee.lastName})`
           );
           await prismaWithModels.employee.create({
             data: {
@@ -221,9 +225,9 @@ export async function syncEmployeeData(
       data: {
         syncDate: new Date(),
         success: true,
-        message: `Successfully synced ${
+        message: `Synkronisering slutförd: ${
           recordsAdded + recordsUpdated
-        } employees (${recordsAdded} added, ${recordsUpdated} updated)`,
+        } anställda (${recordsAdded} tillagda, ${recordsUpdated} uppdaterade)`,
         recordsAdded,
         recordsUpdated,
         apiKeyStatus: apiKeyStatus.valid ? "valid" : "invalid",
@@ -233,22 +237,22 @@ export async function syncEmployeeData(
 
     return {
       success: true,
-      message: `Successfully synced ${
+      message: `Synkronisering slutförd: ${
         recordsAdded + recordsUpdated
-      } employees (${recordsAdded} added, ${recordsUpdated} updated)`,
+      } anställda (${recordsAdded} tillagda, ${recordsUpdated} uppdaterade)`,
       recordsAdded,
       recordsUpdated,
       apiKeyExpiry,
       apiKeyStatus: apiKeyStatus.valid ? "valid" : "invalid",
     };
   } catch (error) {
-    console.error("Error syncing employee data:", error);
+    console.error("Fel vid synkronisering av personaldata:", error);
 
     await prismaWithModels.employeeDataSync.create({
       data: {
         syncDate: new Date(),
         success: false,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : "Okänt fel",
         recordsAdded,
         recordsUpdated,
         apiKeyStatus: "error",
@@ -258,7 +262,7 @@ export async function syncEmployeeData(
 
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Unknown error",
+      message: error instanceof Error ? error.message : "Okänt fel",
       recordsAdded,
       recordsUpdated,
       apiKeyStatus: "error",
@@ -266,10 +270,6 @@ export async function syncEmployeeData(
   }
 }
 
-/**
- * Get employee retention data for a specific year
- * @param year The year to get retention data for
- */
 export async function getEmployeeRetentionData(
   year: number
 ): Promise<EmployeeRetentionData> {
@@ -372,13 +372,13 @@ export async function getEmployeeRetentionData(
       apiKeyStatus,
     };
   } catch (error) {
-    console.error("Error getting employee retention data:", error);
+    console.error("Fel vid hämtning av personalretentionsdata:", error);
     throw error;
   }
 }
 
 /**
- * Check the status of the Hailey HR API key
+ * Kontrollera status för Hailey HR API-nyckel
  */
 export async function checkApiKeyStatus(): Promise<ApiKeyStatus> {
   const apiKey = process.env.HAILEY_HR_API_KEY;
@@ -388,7 +388,7 @@ export async function checkApiKeyStatus(): Promise<ApiKeyStatus> {
 }
 
 /**
- * Get the last sync date and status
+ * Hämta senaste synkroniseringsdatum och status
  */
 export async function getLastSyncInfo(): Promise<{
   date: Date | null;
@@ -408,7 +408,10 @@ export async function getLastSyncInfo(): Promise<{
       status: lastSync.success ? "success" : "failed",
     };
   } catch (error) {
-    console.error("Error getting last sync info:", error);
+    console.error(
+      "Fel vid hämtning av senaste synkroniseringsinformation:",
+      error
+    );
     return { date: null, status: "none" };
   }
 }

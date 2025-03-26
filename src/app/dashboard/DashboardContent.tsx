@@ -9,7 +9,7 @@ import GenerateLink from "@/components/GenerateLink";
 import { useTimeFrame } from "@/context/TimeFrameContext";
 import { Session } from "next-auth";
 import { SurveyData } from "@/app/actions/surveyActions";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { EmployeeMetrics } from "@/components/EmployeeMetrics";
 import {
   getEmployeeRetentionData,
@@ -263,82 +263,92 @@ export function DashboardContent({
           </TabsContent>
 
           <TabsContent value="employees" className="space-y-6">
-            {employeeDataLoading ? (
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
               <div>
                 <h2 className="text-3xl md:text-4xl">Personaldata</h2>
+                <p className="text-muted-foreground min-h-[1.5rem]">
+                  {employeeDataLoading ? (
+                    "Laddar..."
+                  ) : employeeData?.lastSyncDate ? (
+                    <>
+                      Senaste synk:{" "}
+                      {new Date(employeeData.lastSyncDate).toLocaleDateString()}
+                    </>
+                  ) : (
+                    <>Aldrig synkroniserad</>
+                  )}
+                </p>
               </div>
-            ) : employeeData ? (
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                  <h2 className="text-3xl md:text-4xl">Personaldata</h2>
-                  <p className="text-muted-foreground">
-                    {employeeData?.lastSyncDate ? (
-                      <>
-                        Senaste synk:{" "}
-                        {new Date(
-                          employeeData.lastSyncDate
-                        ).toLocaleDateString()}
-                      </>
-                    ) : (
-                      <>Aldrig synkroniserad</>
-                    )}
-                  </p>
-                </div>
 
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    className="px-4"
-                    size="lg"
-                    onClick={() => setCurrentYear((prev) => prev - 1)}
-                  >
-                    ←
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentYear(new Date().getFullYear())}
-                  >
-                    Nuvarande år
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="px-4"
-                    size="lg"
-                    onClick={() => setCurrentYear((prev) => prev + 1)}
-                    disabled={currentYear >= new Date().getFullYear()}
-                  >
-                    →
-                  </Button>
-                </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  className="px-4"
+                  size="lg"
+                  onClick={() => {
+                    setCurrentYear((prev) => prev - 1);
+                    setTimeout(() => fetchEmployeeData(), 50);
+                  }}
+                  disabled={employeeDataLoading}
+                >
+                  ←
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    setCurrentYear(new Date().getFullYear());
+                    setTimeout(() => fetchEmployeeData(), 50);
+                  }}
+                  disabled={employeeDataLoading}
+                >
+                  Nuvarande år
+                </Button>
+                <Button
+                  variant="outline"
+                  className="px-4"
+                  size="lg"
+                  onClick={() => {
+                    setCurrentYear((prev) => prev + 1);
+                    setTimeout(() => fetchEmployeeData(), 50);
+                  }}
+                  disabled={
+                    employeeDataLoading ||
+                    currentYear >= new Date().getFullYear()
+                  }
+                >
+                  →
+                </Button>
               </div>
-            ) : (
+            </div>
+
+            {employeeDataLoading ? (
+              <div className="min-h-[300px] flex items-center justify-center">
+                <p>Laddar personaldata...</p>
+              </div>
+            ) : !employeeData ? (
               <Card className="p-6">
                 <p>
                   Inga personaldata tillgängliga. Vänligen synkronisera data
                   först.
                 </p>
               </Card>
-            )}
-
-            {employeeData && (
+            ) : (
               <div className="flex gap-6 flex-col">
                 <div>
                   <EmployeeMetrics retentionData={employeeData} />
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-medium mb-4">
+                  <h3 className="text-xl font-medium mb-2">
                     Datasynkronisering
                   </h3>
                   <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
                 </div>
               </div>
             )}
-
-            {/* Employee Date Testing Section */}
             <div className="mt-8">
-              <h3 className="text-xl font-medium mb-4">Testning</h3>
+              <h3 className="text-xl font-medium mb-2">Testning</h3>
               <Card className="p-6">
                 <div className="flex items-center gap-4 mb-6">
                   <Button onClick={handleTestSync} disabled={isSyncing}>
@@ -356,9 +366,7 @@ export function DashboardContent({
                     <label htmlFor="useMock">Använd testdata</label>
                   </div>
 
-                  {syncMessage && (
-                    <div className="text-sm text-green-600">{syncMessage}</div>
-                  )}
+                  {syncMessage && <div>{syncMessage}</div>}
                 </div>
 
                 <div className="overflow-x-auto border rounded-2xl">

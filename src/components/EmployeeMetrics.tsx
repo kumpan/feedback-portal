@@ -1,102 +1,190 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmployeeRetentionData } from "@/app/actions/employeeActions";
-import { motion } from "framer-motion";
+import {
+  syncEmployeeData,
+  EmployeeRetentionData,
+} from "@/app/actions/employeeActions";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 
 interface EmployeeMetricsProps {
   retentionData: EmployeeRetentionData;
+  onSync: () => Promise<void>;
 }
 
 export function EmployeeMetrics({
   retentionData,
+  onSync,
 }: EmployeeMetricsProps) {
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+
+    try {
+      const result = await syncEmployeeData();
+      setSyncResult({
+        success: result.success,
+        message: result.message,
+      });
+
+      if (result.success) {
+        await onSync();
+      }
+    } catch (error) {
+      setSyncResult({
+        success: false,
+        message:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const formatYears = (years: number) => {
-    if (years < 1) {
-      const months = Math.round(years * 12);
-      return `${months} ${months === 1 ? 'månad' : 'månader'}`;
+  const retentionRateSpring = useSpring(retentionData.retentionRate, { 
+    stiffness: 100, 
+    damping: 30 
+  });
+  
+  const originalRetentionRateSpring = useSpring(retentionData.originalEmployeeRetentionRate, { 
+    stiffness: 100, 
+    damping: 30 
+  });
+  
+  const durationSpring = useSpring(retentionData.averageEmploymentDuration, { 
+    stiffness: 100, 
+    damping: 30 
+  });
+  
+  const formattedRetentionRate = useTransform(retentionRateSpring, value => 
+    `${value.toFixed(1)}%`
+  );
+  
+  const formattedOriginalRetentionRate = useTransform(originalRetentionRateSpring, value => 
+    `${value.toFixed(1)}%`
+  );
+  
+  const formattedDuration = useTransform(durationSpring, value => {
+    const wholeYears = Math.floor(value);
+    const months = Math.round((value - wholeYears) * 12);
+
+    if (wholeYears === 0) {
+      return `${months} months`;
+    } else if (months === 0) {
+      return `${wholeYears} ${wholeYears === 1 ? "year" : "years"}`;
+    } else {
+      return `${wholeYears} ${wholeYears === 1 ? "year" : "years"}, ${months} ${
+        months === 1 ? "month" : "months"
+      }`;
     }
-    return `${years.toFixed(1)} ${years === 1 ? 'år' : 'år'}`;
+  });
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24,
+      },
+    },
+  };
+
+  const getApiKeyStatusColor = () => {
+    switch (retentionData.apiKeyStatus) {
+      case "valid":
+        return "text-green-500";
+      case "expired":
+        return "text-red-500";
+      default:
+        return "text-yellow-500";
+    }
+  };
+
+  const getApiKeyStatusText = () => {
+    switch (retentionData.apiKeyStatus) {
+      case "valid":
+        return "API Key Valid";
+      case "expired":
+        return "API Key Expired";
+      default:
+        return "API Key Status Unknown";
+    }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="grid gap-2 md:gap-4 grid-cols-1 md:grid-cols-2">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-3 mt-4">
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.1 }}
+      >
         <Card>
-          <CardHeader className="border-b border-border/20 mb-4">
-            <CardTitle>Anställda vid årets början</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="">Årsskiftesretention</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-5xl md:text-6xl font-medium">
-              {retentionData.startOfYearCount}
+          <CardContent>
+            <div className="text-4xl font-medium">
+              <motion.span>{formattedRetentionRate}</motion.span>
             </div>
-            <p className="opacity-70">
-              Antal anställda {retentionData.year}-01-01
+            <p className="text-xs text-muted-foreground">
+              {retentionData.endOfYearCount} av {retentionData.startOfYearCount}{" "}
+              anställda
             </p>
           </CardContent>
         </Card>
-        
+      </motion.div>
+
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.2 }}
+      >
         <Card>
-          <CardHeader className="border-b border-border/20 mb-4">
-            <CardTitle>Anställda vid årets slut</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="">Stabilitetsretention</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-5xl md:text-6xl font-medium">
-              {retentionData.endOfYearCount}
+          <CardContent>
+            <div className="text-4xl font-medium">
+              <motion.span>{formattedOriginalRetentionRate}</motion.span>
             </div>
-            <p className="opacity-70">
-              Antal anställda {retentionData.year}-12-31
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="border-b border-border/20 mb-4">
-            <CardTitle>Årsskiftesretention</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-5xl md:text-6xl font-medium">
-              {formatPercentage(retentionData.retentionRate)}
-            </div>
-            <p className="opacity-70">Andel kvarvarande anställda</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="border-b border-border/20 mb-4">
-            <CardTitle>Stabilitetsretention</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-5xl md:text-6xl font-medium">
-              {formatPercentage(retentionData.originalEmployeeRetentionRate)}
-            </div>
-            <p className="opacity-70">
+            <p className="text-xs text-muted-foreground">
               {retentionData.originalEmployeesRetained} av{" "}
               {retentionData.startOfYearCount} anställda
             </p>
           </CardContent>
         </Card>
-        
-        <Card className="md:col-span-2">
-          <CardHeader className="border-b border-border/20 mb-4">
-            <CardTitle>Genomsnittlig anställningstid</CardTitle>
+      </motion.div>
+
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.3 }}
+      >
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="">Anställningstid</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-5xl md:text-6xl font-medium">
-              {formatYears(retentionData.averageEmploymentDuration)}
+          <CardContent>
+            <div className="text-4xl font-medium">
+              <motion.span>{formattedDuration}</motion.span>
             </div>
-            <p className="opacity-70">Beräknat över alla anställda</p>
+            <p className="text-xs text-muted-foreground">Över alla anställda</p>
           </CardContent>
         </Card>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

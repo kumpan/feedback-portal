@@ -99,7 +99,7 @@ export default function EmployeeDataSync({
                 type={showApiKey ? "text" : "password"}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your Hailey HR API key"
+                placeholder="Hailey HR API-nyckel"
                 className="flex-1"
               />
               <Button
