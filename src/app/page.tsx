@@ -129,7 +129,7 @@ function HomeContent() {
         <Card className="p-8 max-w-md">
           <h1 className="text-2xl mb-4">Error</h1>
           <p className="mb-4">{error}</p>
-          <Button onClick={() => router.push("/")}>Return Home</Button>
+          <Button onClick={() => router.push("/")}>Gå tillbaka</Button>
         </Card>
       </main>
     );
