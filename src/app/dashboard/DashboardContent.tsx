@@ -238,7 +238,7 @@ export function DashboardContent({
           onValueChange={handleTabChange}
           className="mt-4"
         >
-          <div className="flex mb-2 justify-between items-center flex-col md:flex-row">
+          <div className="flex mb-2 justify-between md:items-center gap-2 flex-col md:flex-row">
             <div className="w-auto">
               <TabsList className="mb-0">
                 <TabsTrigger
