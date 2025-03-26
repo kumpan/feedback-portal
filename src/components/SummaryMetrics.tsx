@@ -44,7 +44,7 @@ export function SummaryMetrics({
           <CardTitle>NPS</CardTitle>
         </CardHeader>
         <CardContent>
-          <motion.p className="text-6xl md:text-7xl font-medium">
+          <motion.p className="text-6xl md:text-7xl proportional-nums font-medium">
             {timeframeNps >= 0 ? "+" : ""}
             <Counter value={timeframeNps} />
           </motion.p>
@@ -55,7 +55,7 @@ export function SummaryMetrics({
           <CardTitle>Nöjdhet</CardTitle>
         </CardHeader>
         <CardContent>
-          <motion.p className="text-6xl md:text-7xl font-medium">
+          <motion.p className="text-6xl md:text-7xl proportional-nums font-medium">
             <Counter value={avgSatisfaction} decimals={1} />
           </motion.p>
         </CardContent>
@@ -65,7 +65,7 @@ export function SummaryMetrics({
           <CardTitle>Kommunikation</CardTitle>
         </CardHeader>
         <CardContent>
-          <motion.p className="text-6xl md:text-7xl font-medium">
+          <motion.p className="text-6xl md:text-7xl proportional-nums font-medium">
             <Counter value={avgCommunication} decimals={1} />
           </motion.p>
         </CardContent>

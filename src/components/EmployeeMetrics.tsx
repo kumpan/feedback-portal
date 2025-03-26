@@ -1,16 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   syncEmployeeData,
   EmployeeRetentionData,
 } from "@/app/actions/employeeActions";
-import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 
 interface EmployeeMetricsProps {
   retentionData: EmployeeRetentionData;
   onSync: () => Promise<void>;
+}
+
+function Counter({
+  value,
+  decimals = 0,
+  suffix = "",
+  prefix = "",
+}: {
+  value: number;
+  decimals?: number;
+  suffix?: string;
+  prefix?: string;
+}) {
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => 
+    `${prefix}${latest.toFixed(decimals)}${suffix}`
+  );
+
+  useEffect(() => {
+    const animation = animate(count, value, {
+      duration: 0.5,
+      ease: "easeOut",
+    });
+
+    return animation.stop;
+  }, [count, value, prefix, suffix]);
+
+  return <motion.span>{rounded}</motion.span>;
 }
 
 export function EmployeeMetrics({
@@ -48,55 +76,24 @@ export function EmployeeMetrics({
     }
   };
 
-  const retentionRateSpring = useSpring(retentionData.retentionRate, { 
-    stiffness: 100, 
-    damping: 30 
-  });
-  
-  const originalRetentionRateSpring = useSpring(retentionData.originalEmployeeRetentionRate, { 
-    stiffness: 100, 
-    damping: 30 
-  });
-  
-  const durationSpring = useSpring(retentionData.averageEmploymentDuration, { 
-    stiffness: 100, 
-    damping: 30 
-  });
-  
-  const formattedRetentionRate = useTransform(retentionRateSpring, value => 
-    `${value.toFixed(1)}%`
-  );
-  
-  const formattedOriginalRetentionRate = useTransform(originalRetentionRateSpring, value => 
-    `${value.toFixed(1)}%`
-  );
-  
-  const formattedDuration = useTransform(durationSpring, value => {
-    const wholeYears = Math.floor(value);
-    const months = Math.round((value - wholeYears) * 12);
+  const formatYears = (years: number) => {
+    const wholeYears = Math.floor(years);
+    const months = Math.round((years - wholeYears) * 12);
 
     if (wholeYears === 0) {
-      return `${months} months`;
+      return `${months} ${months === 1 ? "månad" : "månader"}`;
     } else if (months === 0) {
-      return `${wholeYears} ${wholeYears === 1 ? "year" : "years"}`;
+      return `${wholeYears} ${wholeYears === 1 ? "år" : "år"}`;
     } else {
-      return `${wholeYears} ${wholeYears === 1 ? "year" : "years"}, ${months} ${
-        months === 1 ? "month" : "months"
+      return `${wholeYears} ${wholeYears === 1 ? "år" : "år"}, ${months} ${
+        months === 1 ? "månad" : "månader"
       }`;
     }
-  });
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 24,
-      },
-    },
+    visible: { opacity: 1, y: 0 },
   };
 
   const getApiKeyStatusColor = () => {
@@ -122,69 +119,73 @@ export function EmployeeMetrics({
   };
 
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-3 mt-4">
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        transition={{ delay: 0.1 }}
-      >
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="">Årsskiftesretention</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-medium">
-              <motion.span>{formattedRetentionRate}</motion.span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {retentionData.endOfYearCount} av {retentionData.startOfYearCount}{" "}
-              anställda
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        transition={{ delay: 0.2 }}
-      >
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="">Stabilitetsretention</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-medium">
-              <motion.span>{formattedOriginalRetentionRate}</motion.span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {retentionData.originalEmployeesRetained} av{" "}
-              {retentionData.startOfYearCount} anställda
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        transition={{ delay: 0.3 }}
-      >
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="">Anställningstid</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-medium">
-              <motion.span>{formattedDuration}</motion.span>
-            </div>
-            <p className="text-xs text-muted-foreground">Över alla anställda</p>
-          </CardContent>
-        </Card>
-      </motion.div>
+    <div className="grid gap-2 md:gap-4 grid-cols-1 md:grid-cols-2">
+      <Card>
+        <CardHeader className="border-b border-border/20 mb-4">
+          <CardTitle>Anställda vid årets början</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl font-medium">
+            <Counter value={retentionData.startOfYearCount} decimals={0} />
+          </div>
+          <p className="opacity-70">
+            Antal anställda {retentionData.year}-01-01
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="border-b border-border/20 mb-4">
+          <CardTitle>Anställda vid årets slut</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl font-medium">
+            <Counter value={retentionData.endOfYearCount} decimals={0} />
+          </div>
+          <p className="opacity-70">
+            Antal anställda {retentionData.year}-12-31
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="border-b border-border/20 mb-4">
+          <CardTitle>Årsskiftesretention</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl font-medium">
+            <Counter value={retentionData.retentionRate} decimals={1} suffix="%" />
+          </div>
+          <p className="opacity-70">Andel kvarvarande anställda</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="border-b border-border/20 mb-4">
+          <CardTitle>Stabilitetsretention</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl font-medium">
+            <Counter value={retentionData.originalEmployeeRetentionRate} decimals={1} suffix="%" />
+          </div>
+          <p className="opacity-70">
+            <Counter value={retentionData.originalEmployeesRetained} decimals={0} /> av{" "}
+            {retentionData.startOfYearCount} anställda
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card className="md:col-span-2">
+        <CardHeader className="border-b border-border/20 mb-4">
+          <CardTitle>Genomsnittlig anställningstid</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl font-medium">
+            {formatYears(retentionData.averageEmploymentDuration)}
+          </div>
+          <p className="opacity-70">Beräknat över alla anställda</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

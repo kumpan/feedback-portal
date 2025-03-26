@@ -49,15 +49,27 @@ export function DashboardContent({
   const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [employeeData, setEmployeeData] =
-    useState<EmployeeRetentionData | null>(null);
-  const [employeeDataLoading, setEmployeeDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("feedback");
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [isSyncing, setIsSyncing] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [useMock, setUseMock] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
+
+  const defaultEmployeeData: EmployeeRetentionData = {
+    year: currentYear,
+    startOfYearCount: 0,
+    endOfYearCount: 0,
+    retentionRate: 0,
+    originalEmployeesRetained: 0,
+    originalEmployeeRetentionRate: 0,
+    averageEmploymentDuration: 0,
+    lastSyncDate: null,
+    apiKeyStatus: "unknown",
+  };
+
+  const [employeeData, setEmployeeData] =
+    useState<EmployeeRetentionData>(defaultEmployeeData);
 
   useEffect(() => {
     async function fetchData() {
@@ -80,15 +92,12 @@ export function DashboardContent({
   }, [timeFrame, getSurveyData]);
 
   const fetchEmployeeData = useCallback(async () => {
-    setEmployeeDataLoading(true);
     setError(null);
     try {
       const data = await getEmployeeRetentionData(currentYear);
       setEmployeeData(data);
     } catch (err) {
       console.error("Error fetching employee data:", err);
-    } finally {
-      setEmployeeDataLoading(false);
     }
   }, [currentYear]);
 
@@ -136,6 +145,10 @@ export function DashboardContent({
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+  };
+
+  const handleEmployeeDataSync = async () => {
+    await fetchEmployeeData();
   };
 
   if (loading && !surveyData) {
@@ -267,9 +280,7 @@ export function DashboardContent({
               <div>
                 <h2 className="text-3xl md:text-4xl">Personaldata</h2>
                 <p className="text-muted-foreground min-h-[1.5rem]">
-                  {employeeDataLoading ? (
-                    "Laddar..."
-                  ) : employeeData?.lastSyncDate ? (
+                  {employeeData?.lastSyncDate ? (
                     <>
                       Senaste synk:{" "}
                       {new Date(employeeData.lastSyncDate).toLocaleDateString()}
@@ -289,7 +300,6 @@ export function DashboardContent({
                     setCurrentYear((prev) => prev - 1);
                     setTimeout(() => fetchEmployeeData(), 50);
                   }}
-                  disabled={employeeDataLoading}
                 >
                   ←
                 </Button>
@@ -300,7 +310,6 @@ export function DashboardContent({
                     setCurrentYear(new Date().getFullYear());
                     setTimeout(() => fetchEmployeeData(), 50);
                   }}
-                  disabled={employeeDataLoading}
                 >
                   Nuvarande år
                 </Button>
@@ -312,41 +321,24 @@ export function DashboardContent({
                     setCurrentYear((prev) => prev + 1);
                     setTimeout(() => fetchEmployeeData(), 50);
                   }}
-                  disabled={
-                    employeeDataLoading ||
-                    currentYear >= new Date().getFullYear()
-                  }
+                  disabled={currentYear >= new Date().getFullYear()}
                 >
                   →
                 </Button>
               </div>
             </div>
 
-            {employeeDataLoading ? (
-              <div className="min-h-[300px] flex items-center justify-center">
-                <p>Laddar personaldata...</p>
-              </div>
-            ) : !employeeData ? (
-              <Card className="p-6">
-                <p>
-                  Inga personaldata tillgängliga. Vänligen synkronisera data
-                  först.
-                </p>
-              </Card>
-            ) : (
-              <div className="flex gap-6 flex-col">
-                <div>
-                  <EmployeeMetrics retentionData={employeeData} />
-                </div>
+            <div className="flex gap-6 flex-col">
+              <EmployeeMetrics
+                retentionData={employeeData}
+                onSync={handleEmployeeDataSync}
+              />
 
-                <div>
-                  <h3 className="text-xl font-medium mb-2">
-                    Datasynkronisering
-                  </h3>
-                  <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
-                </div>
+              <div>
+                <h3 className="text-xl font-medium mb-2">Datasynkronisering</h3>
+                <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
               </div>
-            )}
+            </div>
             <div className="mt-8">
               <h3 className="text-xl font-medium mb-2">Testning</h3>
               <Card className="p-6">
