@@ -19,7 +19,12 @@ import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import EmployeeDataSync from "@/components/EmployeeDataSync";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserIcon, MessageSquare } from "lucide-react";
+import {
+  UserIcon,
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 interface DashboardContentProps {
   session: Session;
@@ -233,9 +238,9 @@ export function DashboardContent({
           onValueChange={handleTabChange}
           className="mt-4"
         >
-          <div className="flex mb-2 justify-between flex-col md:flex-row">
+          <div className="flex mb-2 justify-between items-center flex-col md:flex-row">
             <div className="w-auto">
-              <TabsList className="mb-2">
+              <TabsList className="mb-0">
                 <TabsTrigger
                   value="feedback"
                   icon={<MessageSquare className="h-4 w-4" />}
@@ -251,6 +256,49 @@ export function DashboardContent({
               </TabsList>
             </div>
             {activeTab === "feedback" && <TimeFrameSelector />}
+            {activeTab === "employees" && (
+              <div className="flex select-none items-center">
+                <div className="border border-border h-12 rounded-md flex items-center overflow-hidden">
+                  <div
+                    className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
+                      currentYear <= 2020
+                        ? "opacity-50"
+                        : "hover:bg-primary-80/70 transition-colors"
+                    }`}
+                    onClick={() => {
+                      if (currentYear <= 2020) return;
+                      setCurrentYear((prev) => prev - 1);
+                      setTimeout(() => fetchEmployeeData(), 50);
+                    }}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </div>
+                  <div
+                    className="px-4 py-2 cursor-pointer hover:bg-primary-80/70 flex transition-colors h-full justify-center items-center rounded-sm"
+                    onClick={() => {
+                      setCurrentYear(new Date().getFullYear());
+                      setTimeout(() => fetchEmployeeData(), 50);
+                    }}
+                  >
+                    {currentYear}
+                  </div>
+                  <div
+                    className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
+                      currentYear >= new Date().getFullYear()
+                        ? "opacity-50"
+                        : "hover:bg-primary-80/70 transition-colors"
+                    }`}
+                    onClick={() => {
+                      if (currentYear >= new Date().getFullYear()) return;
+                      setCurrentYear((prev) => prev + 1);
+                      setTimeout(() => fetchEmployeeData(), 50);
+                    }}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <TabsContent value="feedback" className="space-y-2 md:space-y-4">
             <SummaryMetrics surveyData={surveyData} />
@@ -268,58 +316,6 @@ export function DashboardContent({
           </TabsContent>
 
           <TabsContent value="employees" className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-              <div>
-                <h2 className="text-3xl md:text-4xl">Personaldata</h2>
-                <p className="text-muted-foreground min-h-[1.5rem]">
-                  {employeeData?.lastSyncDate ? (
-                    <>
-                      Senaste synk:{" "}
-                      {new Date(employeeData.lastSyncDate).toLocaleDateString()}
-                    </>
-                  ) : (
-                    <>Aldrig synkroniserad</>
-                  )}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  className="px-4"
-                  size="lg"
-                  onClick={() => {
-                    setCurrentYear((prev) => prev - 1);
-                    setTimeout(() => fetchEmployeeData(), 50);
-                  }}
-                >
-                  ←
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => {
-                    setCurrentYear(new Date().getFullYear());
-                    setTimeout(() => fetchEmployeeData(), 50);
-                  }}
-                >
-                  Nuvarande år
-                </Button>
-                <Button
-                  variant="outline"
-                  className="px-4"
-                  size="lg"
-                  onClick={() => {
-                    setCurrentYear((prev) => prev + 1);
-                    setTimeout(() => fetchEmployeeData(), 50);
-                  }}
-                  disabled={currentYear >= new Date().getFullYear()}
-                >
-                  →
-                </Button>
-              </div>
-            </div>
-
             <div className="flex gap-6 flex-col">
               <EmployeeMetrics retentionData={employeeData} />
 
