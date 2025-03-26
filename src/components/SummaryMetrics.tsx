@@ -1,73 +1,86 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SurveyData } from "@/app/actions/surveyActions";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface SummaryMetricsProps {
-  avgSatisfaction: number;
-  avgCommunication: number;
-  timeframeNps: number;
+  surveyData: SurveyData;
 }
 
-function Counter({
+function AnimateNumber({
   value,
+  duration = 0.8,
   decimals = 0,
+  suffix = "",
+  prefix = "",
 }: {
   value: number;
+  duration?: number;
   decimals?: number;
+  suffix?: string;
+  prefix?: string;
 }) {
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => latest.toFixed(decimals));
+  const prevValueRef = useRef(value);
+  const count = useMotionValue(prevValueRef.current);
+
+  const formattedValue = useTransform(count, (latest) => {
+    return `${prefix}${latest.toFixed(decimals)}${suffix}`;
+  });
 
   useEffect(() => {
-    const animation = animate(count, value, {
-      duration: 0.5,
-      ease: "easeOut",
-    });
+    if (prevValueRef.current !== value) {
+      const animation = animate(count, value, {
+        duration: duration,
+        ease: "easeOut",
+      });
 
-    return animation.stop;
-  }, [count, value]);
+      prevValueRef.current = value;
 
-  return <motion.span>{rounded}</motion.span>;
+      return animation.stop;
+    }
+  }, [count, value, duration]);
+
+  return <motion.span>{formattedValue}</motion.span>;
 }
 
-export function SummaryMetrics({
-  timeframeNps,
-  avgCommunication,
-  avgSatisfaction,
-}: SummaryMetricsProps) {
+export function SummaryMetrics({ surveyData }: SummaryMetricsProps) {
+  const avgSatisfaction = surveyData.avgSatisfaction;
+  const avgCommunication = surveyData.avgCommunication;
+  const nps = surveyData.timeframeNps;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-      <Card className="gap-0">
-        <CardHeader>
+    <div className="grid gap-2 md:gap-4 grid-cols-1 md:grid-cols-3">
+      <Card>
+        <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>NPS</CardTitle>
         </CardHeader>
-        <CardContent>
-          <motion.p className="text-6xl md:text-7xl proportional-nums font-medium">
-            {timeframeNps >= 0 ? "+" : ""}
-            <Counter value={timeframeNps} />
-          </motion.p>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl proportional-nums font-medium">
+            {nps >= 0 ? "+" : ""}
+            <AnimateNumber value={nps} decimals={1} />
+          </div>
         </CardContent>
       </Card>
-      <Card className="gap-0">
-        <CardHeader>
+      <Card>
+        <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>Nöjdhet</CardTitle>
         </CardHeader>
-        <CardContent>
-          <motion.p className="text-6xl md:text-7xl proportional-nums font-medium">
-            <Counter value={avgSatisfaction} decimals={1} />
-          </motion.p>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl proportional-nums font-medium">
+            <AnimateNumber value={avgSatisfaction} decimals={1} />
+          </div>
         </CardContent>
       </Card>
-      <Card className="gap-0">
-        <CardHeader>
+      <Card>
+        <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>Kommunikation</CardTitle>
         </CardHeader>
-        <CardContent>
-          <motion.p className="text-6xl md:text-7xl proportional-nums font-medium">
-            <Counter value={avgCommunication} decimals={1} />
-          </motion.p>
+        <CardContent className="pt-0">
+          <div className="text-5xl md:text-6xl proportional-nums font-medium">
+            <AnimateNumber value={avgCommunication} decimals={1} />
+          </div>
         </CardContent>
       </Card>
     </div>

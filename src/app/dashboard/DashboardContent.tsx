@@ -9,7 +9,7 @@ import GenerateLink from "@/components/GenerateLink";
 import { useTimeFrame } from "@/context/TimeFrameContext";
 import { Session } from "next-auth";
 import { SurveyData } from "@/app/actions/surveyActions";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { EmployeeMetrics } from "@/components/EmployeeMetrics";
 import {
   getEmployeeRetentionData,
@@ -147,10 +147,6 @@ export function DashboardContent({
     setActiveTab(value);
   };
 
-  const handleEmployeeDataSync = async () => {
-    await fetchEmployeeData();
-  };
-
   if (loading && !surveyData) {
     return <></>;
   }
@@ -257,11 +253,7 @@ export function DashboardContent({
             {activeTab === "feedback" && <TimeFrameSelector />}
           </div>
           <TabsContent value="feedback" className="space-y-2 md:space-y-4">
-            <SummaryMetrics
-              avgSatisfaction={surveyData.avgSatisfaction}
-              avgCommunication={surveyData.avgCommunication}
-              timeframeNps={surveyData.timeframeNps}
-            />
+            <SummaryMetrics surveyData={surveyData} />
 
             <NPSTrendChart
               trendData={surveyData.trendData}
@@ -329,10 +321,7 @@ export function DashboardContent({
             </div>
 
             <div className="flex gap-6 flex-col">
-              <EmployeeMetrics
-                retentionData={employeeData}
-                onSync={handleEmployeeDataSync}
-              />
+              <EmployeeMetrics retentionData={employeeData} />
 
               <div>
                 <h3 className="text-xl font-medium mb-2">Datasynkronisering</h3>
