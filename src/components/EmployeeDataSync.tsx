@@ -111,11 +111,11 @@ export default function EmployeeDataSync({
                 {showApiKey ? "Dölj" : "Visa"}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="opacity-70">
               Ange en Hailey HR API-nyckel för att synkronisera
             </p>
             {lastSync.date && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="opacity-70 mt-1">
                 Senaste synk: {new Date(lastSync.date).toLocaleString()} -
                 Status: {lastSync.status}
               </p>
