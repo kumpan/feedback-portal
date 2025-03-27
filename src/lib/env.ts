@@ -1,5 +1,7 @@
 export const env = {
   HAILEY_HR_API_KEY: process.env.HAILEY_HR_API_KEY,
+  HAILEY_HR_ACCESS_TOKEN: process.env.HAILEY_HR_ACCESS_TOKEN,
+  HAILEY_HR_API_URL: process.env.HAILEY_HR_API_URL,
 
   DATABASE_URL: process.env.DATABASE_URL || "",
 
@@ -17,6 +19,9 @@ export function validateEnv() {
     "NEXTAUTH_SECRET",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
+    "HAILEY_HR_API_KEY",
+    "HAILEY_HR_ACCESS_TOKEN",
+    "HAILEY_HR_API_URL",
   ];
 
   const missingEnvVars = requiredEnvVars.filter(
