@@ -1,73 +1,44 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { TimeFrameSelector } from "@/components/TimeFrameSelector";
-import { NPSTrendChart } from "@/components/NPSTrendChart";
-import { EmployeeTrendChart } from "@/components/EmployeeTrendChart";
-import { SummaryMetrics } from "@/components/SummaryMetrics";
-import SurveyResponsesList from "@/components/SurveyResponsesList";
-import GenerateLink from "@/components/GenerateLink";
-import { useTimeFrame } from "@/context/TimeFrameContext";
-import { Session } from "next-auth";
-import { SurveyData } from "@/app/actions/surveyActions";
-import { motion, AnimatePresence } from "framer-motion";
-import { EmployeeMetrics } from "@/components/EmployeeMetrics";
+import { useEffect, useState, useCallback } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  getEmployeeRetentionData,
-  getEmployeeTrendData,
-  getAllYearsEmployeeRetentionData,
   EmployeeRetentionData,
-} from "@/app/actions/employeeActions";
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+  getAllYearsEmployeeRetentionData,
+} from "../actions/employeeActions";
+import { SurveyData } from "../actions/surveyActions";
+import { EmployeeTrendChart } from "@/components/EmployeeTrendChart";
+import { EmployeeMetrics } from "@/components/EmployeeMetrics";
+import SurveyResponsesList from "@/components/SurveyResponsesList";
 import EmployeeDataSync from "@/components/EmployeeDataSync";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  UserIcon,
-  MessageSquare,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import GenerateLink from "@/components/GenerateLink";
+import { NPSTrendChart } from "@/components/NPSTrendChart";
+import { SummaryMetrics } from "@/components/SummaryMetrics";
 
 interface DashboardContentProps {
-  session: Session;
   positiveMessage: string;
   getSurveyData: (timeFrame: string) => Promise<SurveyData>;
 }
 
-interface Employee {
-  id: string;
-  employeeId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  startDate: string;
-  endDate: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export function DashboardContent({
-  session,
   positiveMessage,
   getSurveyData,
 }: DashboardContentProps) {
-  const { timeFrame } = useTimeFrame();
-  const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [activeTab, setActiveTab] = useState("feedback");
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [useMock, setUseMock] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
-  const [allEmployeeData, setAllEmployeeData] = useState<
+  const [surveyData, setSurveyData] = useState<SurveyData>({
+    timeframeNps: 0,
+    latestNps: 0,
+    avgSatisfaction: 0,
+    avgCommunication: 0,
+    trendData: [],
+    totalResponses: 0,
+    timeframeName: "",
+    responses: [],
+  });
+
+  const [allYearsEmployeeData, setAllYearsEmployeeData] = useState<
     Record<number, EmployeeRetentionData>
   >({});
-  const [currentEmployeeData, setCurrentEmployeeData] =
-    useState<EmployeeRetentionData | null>(null);
   const [employeeTrendData, setEmployeeTrendData] = useState<{
     trendData: Array<{
       date: string;
@@ -77,302 +48,184 @@ export function DashboardContent({
       formattedDate: string;
     }>;
   } | null>(null);
+  const [currentYear, setCurrentYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  const [currentEmployeeData, setCurrentEmployeeData] =
+    useState<EmployeeRetentionData | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getSurveyData(timeFrame);
-        setSurveyData(data);
-      } catch (err) {
-        console.error("Error fetching survey data:", err);
-        setError(
-          err instanceof Error ? err : new Error("An unknown error occurred")
-        );
-      } finally {
-        setLoading(false);
-      }
+  const [timeFrame, setTimeFrame] = useState<"month" | "quarter" | "year">(
+    "year"
+  );
+
+  const fetchSurveyDataCallback = useCallback(async () => {
+    try {
+      const data = await getSurveyData(timeFrame);
+      setSurveyData(data);
+    } catch (error) {
+      console.error("Error fetching survey data:", error);
     }
-
-    fetchData();
   }, [timeFrame, getSurveyData]);
 
   const fetchEmployeeData = useCallback(async () => {
     try {
       const { retentionDataByYear } = await getAllYearsEmployeeRetentionData();
-      setAllEmployeeData(retentionDataByYear);
-      setCurrentEmployeeData(retentionDataByYear[currentYear]);
+      setAllYearsEmployeeData(retentionDataByYear);
 
-      const trendData = await getEmployeeTrendData();
-      setEmployeeTrendData(trendData);
-    } catch (err) {
-      console.error("Error fetching employee data:", err);
+      if (retentionDataByYear[currentYear]) {
+        setCurrentEmployeeData(retentionDataByYear[currentYear]);
+      } else {
+        const years = Object.keys(retentionDataByYear).map(Number);
+        if (years.length > 0) {
+          const latestYear = Math.max(...years);
+          setCurrentYear(latestYear);
+          setCurrentEmployeeData(retentionDataByYear[latestYear]);
+        }
+      }
+
+      const simplifiedTrendData = Object.values(retentionDataByYear).map(
+        (yearData) => ({
+          date: `${yearData.year}-01-01`,
+          active: Math.round(yearData.endOfYearCount),
+          joined: Math.round(
+            yearData.endOfYearCount -
+              yearData.startOfYearCount +
+              (yearData.turnoverRate * yearData.startOfYearCount) / 100
+          ),
+          left: Math.round(
+            (yearData.turnoverRate * yearData.startOfYearCount) / 100
+          ),
+          formattedDate: yearData.year.toString(),
+        })
+      );
+
+      setEmployeeTrendData({ trendData: simplifiedTrendData });
+    } catch (error) {
+      console.error("Error fetching employee data:", error);
     }
   }, [currentYear]);
 
-  const fetchEmployees = async () => {
-    try {
-      const response = await fetch("/api/test-employees");
-      const data = await response.json();
-      if (data.success) {
-        setEmployees(data.employees);
-      }
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-    }
-  };
+  useEffect(() => {
+    fetchSurveyDataCallback();
+    fetchEmployeeData();
+  }, [fetchSurveyDataCallback, fetchEmployeeData]);
 
   useEffect(() => {
-    if (activeTab === "employees") {
-      fetchEmployeeData();
-      fetchEmployees();
-    }
-  }, [activeTab, fetchEmployeeData]);
+    fetchSurveyDataCallback();
+  }, [fetchSurveyDataCallback]);
 
-  const handleTestSync = async () => {
-    setIsSyncing(true);
-    setSyncMessage("Synkroniserar anställda...");
-    try {
-      const response = await fetch("/api/sync-employees", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ forceFullSync: true, useMock }),
-      });
-      const data = await response.json();
-      setSyncMessage(data.message);
-      fetchEmployees();
-      fetchEmployeeData();
-    } catch (error) {
-      console.error("Error syncing employees:", error);
-      setSyncMessage("Fel vid synkronisering av anställda");
-    } finally {
-      setIsSyncing(false);
+  const handleYearChange = (direction: "prev" | "next") => {
+    const newYear = direction === "prev" ? currentYear - 1 : currentYear + 1;
+
+    if (allYearsEmployeeData[newYear]) {
+      setCurrentYear(newYear);
+      setCurrentEmployeeData(allYearsEmployeeData[newYear]);
     }
   };
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  if (loading && !surveyData) {
-    return <></>;
-  }
-
-  if (error) {
-    return (
-      <section className="w-full flex items-center justify-center">
-        <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-          <p className="text-center py-8 text-red-500">
-            Error: {error.message}
-          </p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!surveyData) {
-    return (
-      <section className="w-full flex items-center justify-center">
-        <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-          <p className="text-center py-8">Inga data tillgängliga</p>
-        </div>
-      </section>
-    );
-  }
 
   return (
-    <section className="w-full flex items-center justify-center">
-      <div className="w-full max-w-5xl px-4 md:px-8 py-6 md:py-12 gap-2 md:gap-4 flex flex-col">
-        <motion.div
-          className="flex flex-col md:flex-row md:justify-between items-center mb-0"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            transition: {
-              opacity: { ease: "easeInOut", duration: 0.3 },
-              y: { type: "spring", stiffness: 300, damping: 24 },
-            },
-          }}
-        >
-          <div className="flex w-full justify-between flex-col md:flex-row gap-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl">
-                <span>Hallå där</span>
-                {session.user?.name && (
-                  <span>, {session.user.name.split(" ")[0]} </span>
-                )}
-                <motion.span
-                  className="inline-block cursor-grab"
-                  initial={{ rotate: 0 }}
-                  animate={{
-                    rotate: [0, 15, -15, 15, 0],
-                    transition: {
-                      duration: 1.5,
-                      ease: "easeInOut",
-                      times: [0, 0.2, 0.5, 0.8, 1],
-                      repeat: 0,
-                      delay: 0.1,
-                    },
-                  }}
-                  whileHover={{
-                    scale: 1.2,
-                    transition: {
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 25,
-                    },
-                  }}
-                >
-                  👋
-                </motion.span>
-              </h1>
-              <p className="text-lg max-w-lg leading-snug mt-2">
-                {positiveMessage}
-              </p>
+    <div className="container mx-auto py-6 max-w-7xl">
+      <div className="mb-6">
+        <p className="text-lg text-gray-600">{positiveMessage}</p>
+      </div>
+      <Tabs defaultValue="survey" className="w-full">
+        <TabsList className="mb-8">
+          <TabsTrigger value="survey">Enkäter</TabsTrigger>
+          <TabsTrigger value="employees">Anställda</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="survey" className="space-y-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl md:text-3xl">Enkätresultat</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setTimeFrame("month")}
+                className={`px-3 py-1.5 rounded-lg ${
+                  timeFrame === "month"
+                    ? "bg-primary text-white"
+                    : "bg-primary-95 text-primary-20"
+                }`}
+              >
+                Månad
+              </button>
+              <button
+                onClick={() => setTimeFrame("quarter")}
+                className={`px-3 py-1.5 rounded-lg ${
+                  timeFrame === "quarter"
+                    ? "bg-primary text-white"
+                    : "bg-primary-95 text-primary-20"
+                }`}
+              >
+                Kvartal
+              </button>
+              <button
+                onClick={() => setTimeFrame("year")}
+                className={`px-3 py-1.5 rounded-lg ${
+                  timeFrame === "year"
+                    ? "bg-primary text-white"
+                    : "bg-primary-95 text-primary-20"
+                }`}
+              >
+                År
+              </button>
             </div>
           </div>
-        </motion.div>
 
-        <Tabs
-          defaultValue="feedback"
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="mt-4"
-        >
-          <div className="flex mb-2 md:mb-4 justify-between md:items-center gap-2 flex-col md:flex-row">
-            <div className="w-auto">
-              <TabsList className="mb-0">
-                <TabsTrigger
-                  value="feedback"
-                  icon={<MessageSquare className="h-4 w-4" />}
-                >
-                  Feedback
-                </TabsTrigger>
-                <TabsTrigger
-                  value="employees"
-                  icon={<UserIcon className="h-4 w-4" />}
-                >
-                  Anställda
-                </TabsTrigger>
-              </TabsList>
-            </div>
-            <AnimatePresence mode="wait" initial={false}>
-              {activeTab === "feedback" && (
-                <motion.div
-                  key="timeFrameSelector"
-                  initial={{ opacity: 0, x: 5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <TimeFrameSelector />
-                </motion.div>
-              )}
-              {activeTab === "employees" && (
-                <motion.div
-                  key="employeeSelector"
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="flex select-none items-center">
-                    <div className="border border-border h-12 rounded-md flex items-center overflow-hidden">
-                      <div
-                        className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
-                          currentYear <= 2004
-                            ? "opacity-50"
-                            : "hover:bg-primary-80/70 transition-colors"
-                        }`}
-                        onClick={() => {
-                          if (currentYear <= 2004) return;
-                          setCurrentYear((prev) => prev - 1);
-                          setTimeout(() => {
-                            if (allEmployeeData[currentYear - 1]) {
-                              setCurrentEmployeeData(
-                                allEmployeeData[currentYear - 1]
-                              );
-                            }
-                          }, 50);
-                        }}
-                      >
-                        <ChevronLeft className="h-5 w-5" />
-                      </div>
-                      <div
-                        className="px-4 py-2 cursor-pointer hover:bg-primary-80/70 flex transition-colors h-full justify-center items-center rounded-sm"
-                        onClick={() => {
-                          const thisYear = new Date().getFullYear();
-                          setCurrentYear(thisYear);
-                          setTimeout(() => {
-                            if (allEmployeeData[thisYear]) {
-                              setCurrentEmployeeData(allEmployeeData[thisYear]);
-                            }
-                          }, 50);
-                        }}
-                      >
-                        {currentYear}
-                      </div>
-                      <div
-                        className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
-                          currentYear >= new Date().getFullYear()
-                            ? "opacity-50"
-                            : "hover:bg-primary-80/70 transition-colors"
-                        }`}
-                        onClick={() => {
-                          if (currentYear >= new Date().getFullYear()) return;
-                          setCurrentYear((prev) => prev + 1);
-                          setTimeout(() => {
-                            if (allEmployeeData[currentYear + 1]) {
-                              setCurrentEmployeeData(
-                                allEmployeeData[currentYear + 1]
-                              );
-                            }
-                          }, 50);
-                        }}
-                      >
-                        <ChevronRight className="h-5 w-5" />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <SummaryMetrics surveyData={surveyData} />
+
+          <NPSTrendChart
+            trendData={surveyData.trendData}
+            timeFrame={timeFrame}
+          />
+
+          <div className="mt-8 flex flex-col md:flex-row md:justify-between">
+            <h2 className="text-2xl md:text-3xl">Feedback svar</h2>
+            <GenerateLink />
           </div>
-          <TabsContent value="feedback" className="space-y-2 md:space-y-4">
-            <SummaryMetrics surveyData={surveyData} />
+          <SurveyResponsesList responses={surveyData.responses} />
+        </TabsContent>
 
-            <NPSTrendChart
-              trendData={surveyData.trendData}
-              timeFrame={timeFrame}
-            />
-
-            <div className="mt-8 flex flex-col md:flex-row md:justify-between">
-              <h2 className="text-2xl md:text-3xl">Feedback svar</h2>
-              <GenerateLink />
-            </div>
-            <SurveyResponsesList responses={surveyData.responses} />
-          </TabsContent>
-
-          <TabsContent value="employees" className="space-y-6">
-            <div className="flex gap-6 flex-col">
-              {currentEmployeeData && (
-                <EmployeeMetrics retentionData={currentEmployeeData} />
-              )}
-              {employeeTrendData && (
-                <EmployeeTrendChart trendData={employeeTrendData.trendData} />
-              )}
-              <div>
-                <h3 className="text-xl font-medium mb-2">Datasynkronisering</h3>
-                <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
+        <TabsContent value="employees" className="space-y-6">
+          <div className="flex gap-6 flex-col">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl md:text-3xl">Anställda</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleYearChange("prev")}
+                  className="p-2 rounded-lg bg-primary-95 text-primary-20 hover:bg-primary-90"
+                  disabled={!allYearsEmployeeData[currentYear - 1]}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-primary-95 rounded-lg">
+                  <Calendar className="h-4 w-4 opacity-70" />
+                  <span>{currentYear}</span>
+                </div>
+                <button
+                  onClick={() => handleYearChange("next")}
+                  className="p-2 rounded-lg bg-primary-95 text-primary-20 hover:bg-primary-90"
+                  disabled={!allYearsEmployeeData[currentYear + 1]}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </section>
+
+            {currentEmployeeData && (
+              <EmployeeMetrics retentionData={currentEmployeeData} />
+            )}
+            {employeeTrendData && (
+              <EmployeeTrendChart trendData={employeeTrendData.trendData} />
+            )}
+
+            <div className="flex justify-end">
+              <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
+
+export default DashboardContent;

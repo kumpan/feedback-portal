@@ -299,29 +299,6 @@ export async function getEmployeeRetentionData(
       },
     });
 
-    const allEmployeesInYear = await prismaWithModels.employee.findMany({
-      where: {
-        OR: [
-          {
-            startDate: {
-              lte: endDate,
-              gte: startDate,
-            },
-          },
-          {
-            endDate: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-          {
-            startDate: { lte: startDate },
-            OR: [{ endDate: null }, { endDate: { gte: endDate } }],
-          },
-        ],
-      },
-    });
-
     const leftEmployees = await prismaWithModels.employee.findMany({
       where: {
         endDate: {
@@ -348,7 +325,7 @@ export async function getEmployeeRetentionData(
         : 0;
 
     let totalDurationInDays = 0;
-    for (const employee of allEmployeesInYear) {
+    for (const employee of startOfYearEmployees) {
       const startDateToUse = new Date(
         Math.max(employee.startDate.getTime(), startDate.getTime())
       );
@@ -363,8 +340,8 @@ export async function getEmployeeRetentionData(
     }
 
     const averageEmploymentDuration =
-      allEmployeesInYear.length > 0
-        ? totalDurationInDays / allEmployeesInYear.length / 365
+      startOfYearEmployees.length > 0
+        ? totalDurationInDays / startOfYearEmployees.length / 365
         : 0;
 
     const lastSync = await prismaWithModels.employeeDataSync.findFirst({
@@ -565,20 +542,6 @@ export async function getAllYearsEmployeeRetentionData(): Promise<{
           return (
             employee.startDate <= startDate &&
             (!employee.endDate || employee.endDate > endDate)
-          );
-        }
-      );
-
-      const allEmployeesInYear = allEmployees.filter(
-        (employee: { startDate: Date; endDate: Date | null }) => {
-          return (
-            (employee.startDate <= endDate &&
-              employee.startDate >= startDate) ||
-            (employee.endDate &&
-              employee.endDate >= startDate &&
-              employee.endDate <= endDate) ||
-            (employee.startDate <= startDate &&
-              (!employee.endDate || employee.endDate >= endDate))
           );
         }
       );

@@ -2,7 +2,7 @@ import { getRandomPositiveMessage } from "@/app/utils/positiveMessages";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { TimeFrameProvider } from "@/context/TimeFrameContext";
-import { DashboardContent } from "@/app/dashboard/DashboardContent";
+import DashboardContent from "@/app/dashboard/DashboardContent";
 import { getSurveyData } from "@/app/actions/surveyActions";
 import { ProfileImage } from "@/components/ProfileImage";
 import Logo from "@/components/logo";
@@ -39,7 +39,6 @@ export default async function Dashboard() {
       </div>
       <TimeFrameProvider initialTimeFrame="last30days">
         <DashboardContent
-          session={session}
           positiveMessage={positiveMessage}
           getSurveyData={getSurveyData}
         />

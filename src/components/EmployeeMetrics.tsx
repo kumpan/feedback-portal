@@ -10,7 +10,6 @@ import React, { useState } from "react";
 
 interface EmployeeMetricsProps {
   retentionData: EmployeeRetentionData;
-  onSync?: () => Promise<void>;
 }
 
 function AnimateNumber({
@@ -145,8 +144,7 @@ const TurnoverInfoModal = ({
         förhållande till den genomsnittliga arbetsstyrkan.
       </p>
       <p className="mt-2">
-        Retention är ett "positivt" mått (högre är bättre), medan Turnover Rate
-        är ett "negativt" mått (lägre är bättre).
+        Retention är ett &quot;positivt&quot; mått (högre är bättre), medan Turnover är ett &quot;negativt&quot; mått (lägre är bättre).
       </p>
     </div>
   </Modal>
@@ -154,23 +152,7 @@ const TurnoverInfoModal = ({
 
 export function EmployeeMetrics({
   retentionData,
-  onSync,
 }: EmployeeMetricsProps) {
-  const formatYears = (years: number) => {
-    const wholeYears = Math.floor(years);
-    const months = Math.round((years - wholeYears) * 12);
-
-    if (wholeYears === 0) {
-      return `${months} ${months === 1 ? "månad" : "månader"}`;
-    } else if (months === 0) {
-      return `${wholeYears} ${wholeYears === 1 ? "år" : "år"}`;
-    } else {
-      return `${wholeYears} ${wholeYears === 1 ? "år" : "år"}, ${months} ${
-        months === 1 ? "månad" : "månader"
-      }`;
-    }
-  };
-
   const [isRetentionModalOpen, setIsRetentionModalOpen] = useState(false);
   const [isTurnoverModalOpen, setIsTurnoverModalOpen] = useState(false);
 
