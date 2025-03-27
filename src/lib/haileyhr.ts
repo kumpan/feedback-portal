@@ -10,7 +10,12 @@ const getPrismaClient = async (): Promise<PrismaClient> => {
   return prisma;
 };
 
-export type ApiKeyStatus = "valid" | "expired" | "unknown" | "invalid" | "error";
+export type ApiKeyStatus =
+  | "valid"
+  | "expired"
+  | "unknown"
+  | "invalid"
+  | "error";
 
 export interface HaileyHREmployee {
   id: string;
@@ -81,6 +86,9 @@ export interface ApiEmployeeData {
   hireDate?: string;
   employmentStatus?: string;
   active?: boolean;
+  dateOfJoining?: string;
+  lastDayOfEmployment?: string;
+  companyEmail?: string;
 }
 
 export interface ApiKeyValidationResult {
@@ -115,7 +123,9 @@ export class HaileyHRApi {
       process.env.HAILEY_HR_API_URL || "https://api.haileyhr.app/api/v1";
     this.useMock = useMock;
 
-    console.log(`HaileyHRApi initialized with ${useMock ? 'mock' : 'real'} data mode`);
+    console.log(
+      `HaileyHRApi initialized with ${useMock ? "mock" : "real"} data mode`
+    );
   }
 
   static transformEmployeeData(employee: HaileyHREmployee) {
@@ -124,10 +134,9 @@ export class HaileyHRApi {
       firstName: employee.firstName,
       startDate: employee.startDate,
       endDate: employee.endDate,
-      isActive: employee.isActive
+      isActive: employee.isActive,
     });
 
-    // Process start date
     let startDate: Date;
     try {
       if (employee.startDate) {
@@ -136,7 +145,10 @@ export class HaileyHRApi {
           const oneYearAgo = new Date();
           oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
           startDate = oneYearAgo;
-          console.log(`Invalid start date for ${employee.id}, using default:`, startDate);
+          console.log(
+            `Invalid start date for ${employee.id}, using default:`,
+            startDate
+          );
         } else {
           console.log(`Valid start date for ${employee.id}:`, startDate);
         }
@@ -144,16 +156,21 @@ export class HaileyHRApi {
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
         startDate = oneYearAgo;
-        console.log(`No start date for ${employee.id}, using default:`, startDate);
+        console.log(
+          `No start date for ${employee.id}, using default:`,
+          startDate
+        );
       }
     } catch {
       const oneYearAgo = new Date();
       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
       startDate = oneYearAgo;
-      console.log(`Error parsing start date for ${employee.id}, using default:`, startDate);
+      console.log(
+        `Error parsing start date for ${employee.id}, using default:`,
+        startDate
+      );
     }
 
-    // Process end date
     let endDate: Date | null = null;
     if (employee.endDate) {
       try {
@@ -165,21 +182,30 @@ export class HaileyHRApi {
           const threeMonthsAgo = new Date();
           threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
           endDate = threeMonthsAgo;
-          console.log(`Invalid end date for inactive employee ${employee.id}, using default:`, endDate);
+          console.log(
+            `Invalid end date for inactive employee ${employee.id}, using default:`,
+            endDate
+          );
         }
       } catch {
         if (!employee.isActive) {
           const threeMonthsAgo = new Date();
           threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
           endDate = threeMonthsAgo;
-          console.log(`Error parsing end date for inactive employee ${employee.id}, using default:`, endDate);
+          console.log(
+            `Error parsing end date for inactive employee ${employee.id}, using default:`,
+            endDate
+          );
         }
       }
     } else if (!employee.isActive) {
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
       endDate = threeMonthsAgo;
-      console.log(`No end date for inactive employee ${employee.id}, using default:`, endDate);
+      console.log(
+        `No end date for inactive employee ${employee.id}, using default:`,
+        endDate
+      );
     }
 
     const result = {
@@ -191,15 +217,17 @@ export class HaileyHRApi {
       endDate: endDate,
       isActive: employee.isActive,
     };
-    
+
     console.log("transformEmployeeData output:", {
       employeeId: result.employeeId,
       firstName: result.firstName,
-      startDate: result.startDate.toISOString().split('T')[0],
-      endDate: result.endDate ? result.endDate.toISOString().split('T')[0] : null,
-      isActive: result.isActive
+      startDate: result.startDate.toISOString().split("T")[0],
+      endDate: result.endDate
+        ? result.endDate.toISOString().split("T")[0]
+        : null,
+      isActive: result.isActive,
     });
-    
+
     return result;
   }
 
@@ -222,7 +250,7 @@ export class HaileyHRApi {
 
     try {
       const prisma = await getPrismaClient();
-      
+
       interface SyncRecord {
         id: string;
         syncDate: Date;
@@ -233,7 +261,7 @@ export class HaileyHRApi {
         apiKeyStatus: string;
         apiKeyExpiry: Date | null;
       }
-      
+
       const lastSyncResult = await prisma.$queryRaw<SyncRecord[]>`
         SELECT * FROM "EmployeeDataSync"
         WHERE "apiKeyStatus" = 'valid' AND "success" = true
@@ -317,25 +345,35 @@ export class HaileyHRApi {
   async getEmployees(): Promise<HaileyHREmployee[]> {
     console.log("getEmployees called");
 
-    // If using mock data, return mock employees
     if (this.useMock) {
       console.log("Using mock employee data for testing");
       const mockEmployees = generateMockEmployees(20);
-      console.log("Generated mock employees sample:", JSON.stringify(mockEmployees.slice(0, 1), null, 2));
-      
-      // Convert BaseEmployee[] to ApiEmployeeData[]
-      const apiCompatibleEmployees: ApiEmployeeData[] = mockEmployees.map(emp => {
-        // Convert Date objects to strings
-        const apiEmp: ApiEmployeeData = {
-          ...emp,
-          startDate: emp.startDate ? emp.startDate.toISOString().split('T')[0] : undefined,
-          endDate: emp.endDate ? emp.endDate.toISOString().split('T')[0] : null,
-          hire_date: emp.hire_date ? emp.hire_date.toISOString().split('T')[0] : undefined,
-          end_date: emp.end_date ? emp.end_date.toISOString().split('T')[0] : null
-        };
-        return apiEmp;
-      });
-      
+      console.log(
+        "Generated mock employees sample:",
+        JSON.stringify(mockEmployees.slice(0, 1), null, 2)
+      );
+
+      const apiCompatibleEmployees: ApiEmployeeData[] = mockEmployees.map(
+        (emp) => {
+          const apiEmp: ApiEmployeeData = {
+            ...emp,
+            startDate: emp.startDate
+              ? emp.startDate.toISOString().split("T")[0]
+              : undefined,
+            endDate: emp.endDate
+              ? emp.endDate.toISOString().split("T")[0]
+              : null,
+            hire_date: emp.hire_date
+              ? emp.hire_date.toISOString().split("T")[0]
+              : undefined,
+            end_date: emp.end_date
+              ? emp.end_date.toISOString().split("T")[0]
+              : null,
+          };
+          return apiEmp;
+        }
+      );
+
       return this.transformApiResponse(apiCompatibleEmployees);
     }
 
@@ -443,149 +481,91 @@ export class HaileyHRApi {
   }
 
   private transformApiResponse(data: ApiEmployeeData[]): HaileyHREmployee[] {
-    console.log("Raw API response data sample:", JSON.stringify(data.slice(0, 1), null, 2));
-    
+    console.log(
+      "Raw API response data sample:",
+      JSON.stringify(data.slice(0, 1), null, 2)
+    );
+
     return data.map((employee: ApiEmployeeData) => {
-      // Extract start date from the correct location in the API response
+      const employeeId =
+        employee.employeeId ||
+        employee.id ||
+        `emp-${Math.random().toString(36).substr(2, 9)}`;
+
+      const firstName = employee.firstName || employee.first_name || "";
+      const lastName = employee.lastName || employee.last_name || "";
+
+      let email = "";
+      if (employee.companyEmail) {
+        email = employee.companyEmail;
+      } else if (employee.email) {
+        email = employee.email;
+      }
+
       let startDate = null;
       let endDate = null;
-      const employeeId = (employee.employeeId as string) || (employee.id as string) || `emp-${Math.random().toString(36).substr(2, 9)}`;
-      
-      console.log(`Processing employee ${employeeId} data structure:`, 
-        employee.jobData ? 'Has jobData' : 'No jobData',
-        employee.jobData?.employment ? 'Has employment data' : 'No employment data'
-      );
-      
-      // Check if we have the detailed structure from the single employee endpoint
-      if (employee.jobData && employee.jobData.employment) {
-        console.log(`Employee ${employeeId} employment data:`, {
-          dateOfJoining: employee.jobData.employment.dateOfJoining,
-          lastDayOfEmployment: employee.jobData.employment.lastDayOfEmployment,
-          hasEmployments: employee.jobData.employment.employments && employee.jobData.employment.employments.length > 0
-        });
-        
-        // Primary start date from dateOfJoining
-        startDate = employee.jobData.employment.dateOfJoining;
-        
-        // Primary end date from lastDayOfEmployment
-        endDate = employee.jobData.employment.lastDayOfEmployment;
-        
-        // If no start date found, try to get it from the first employment
-        if (!startDate && employee.jobData.employment.employments && 
-            employee.jobData.employment.employments.length > 0) {
-          startDate = employee.jobData.employment.employments[0].startDate;
-          console.log(`Using first employment start date for ${employeeId}: ${startDate}`);
-        }
-        
-        // If no end date found and employee is not active, try to get it from the last employment
-        if (!endDate && employee.jobData.employment.employments && 
-            employee.jobData.employment.employments.length > 0) {
-          const lastEmployment = employee.jobData.employment.employments[
-            employee.jobData.employment.employments.length - 1
-          ];
-          endDate = lastEmployment.endDate;
-          console.log(`Using last employment end date for ${employeeId}: ${endDate}`);
-        }
-      } else {
-        // Fallback to the old fields for backward compatibility
-        startDate = employee.startDate || employee.start_date;
-        endDate = employee.endDate || employee.end_date;
-        console.log(`Using fallback date fields for ${employeeId}: startDate=${startDate}, endDate=${endDate}`);
+
+      if (employee.dateOfJoining) {
+        startDate = employee.dateOfJoining;
+        console.log(`Using dateOfJoining for ${employeeId}: ${startDate}`);
       }
-      
-      // Additional fallbacks for start date
-      if (!startDate || !this.isValidDate(startDate)) {
-        const fallbackStartDate = 
+
+      if (employee.lastDayOfEmployment) {
+        endDate = employee.lastDayOfEmployment;
+        console.log(`Using lastDayOfEmployment for ${employeeId}: ${endDate}`);
+      }
+
+      if (!startDate) {
+        startDate =
+          employee.startDate ||
+          employee.start_date ||
           employee.hire_date ||
           employee.joined_date ||
-          employee.hireDate ||
-          employee.joinedDate;
-        
-        if (fallbackStartDate && this.isValidDate(fallbackStartDate)) {
-          startDate = fallbackStartDate;
-          console.log(`Using alternative start date field for ${employeeId}: ${startDate}`);
-        } else {
-          // Only use default if we couldn't find any valid date
-          const today = new Date();
-          const oneYearAgo = new Date(today);
-          oneYearAgo.setFullYear(today.getFullYear() - 1);
-          startDate = oneYearAgo.toISOString().split("T")[0];
-          console.log(`No valid start date found for ${employeeId}, using default: ${startDate}`);
-        }
+          employee.joinedDate ||
+          employee.hireDate;
+        console.log(
+          `Using fallback start date for ${employeeId}: ${startDate}`
+        );
       }
 
-      // Ensure startDate is properly formatted
-      if (startDate && this.isValidDate(startDate)) {
-        const originalStartDate = startDate;
-        startDate = new Date(startDate).toISOString().split("T")[0];
-        console.log(`Formatted start date for ${employeeId}: ${originalStartDate} -> ${startDate}`);
+      if (!endDate) {
+        endDate = employee.endDate || employee.end_date;
+        console.log(`Using fallback end date for ${employeeId}: ${endDate}`);
       }
 
-      // Process end date
-      const isActive = 
-        employee.accountStatus === "Active" ||
-        employee.employmentStatus === "Active" ||
-        employee.isActive === true || 
-        employee.is_active === true || 
-        employee.active === true;
-      
-      console.log(`Employee ${employeeId} active status: ${isActive}`);
-      
-      if (endDate && this.isValidDate(endDate)) {
-        const originalEndDate = endDate;
-        endDate = new Date(endDate).toISOString().split("T")[0];
-        console.log(`Formatted end date for ${employeeId}: ${originalEndDate} -> ${endDate}`);
-      } else if (!isActive) {
-        // Only use default end date for inactive employees without a valid end date
-        const today = new Date();
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(today.getMonth() - 3);
-        endDate = threeMonthsAgo.toISOString().split("T")[0];
-        console.log(`No valid end date found for inactive employee ${employeeId}, using default: ${endDate}`);
-      } else {
-        endDate = null;
-        console.log(`Active employee ${employeeId} has no end date`);
+      let isActive = true;
+      if (
+        employee.employmentStatus === "inactive" ||
+        employee.accountStatus === "inactive" ||
+        employee.is_active === false ||
+        employee.active === false
+      ) {
+        isActive = false;
       }
 
-      // Get name from appropriate location
-      let firstName = "";
-      let lastName = "";
-      
-      if (employee.personal && employee.personal.general) {
-        firstName = employee.personal.general.firstName || "";
-        lastName = employee.personal.general.lastName || "";
-      } else {
-        firstName = employee.firstName || employee.first_name || "";
-        lastName = employee.lastName || employee.last_name || "";
-      }
-      
-      // Get email from appropriate location
-      let email = "";
-      if (employee.jobData && employee.jobData.general) {
-        email = employee.jobData.general.companyEmail || "";
-      } else if (employee.personal && employee.personal.contactInformation) {
-        email = employee.personal.contactInformation.privateEmail || "";
-      } else {
-        email = employee.email || "";
+      if (endDate && new Date(endDate) < new Date()) {
+        isActive = false;
       }
 
-      const transformedEmployee = {
+      const transformedEmployee: HaileyHREmployee = {
         id: employeeId,
         firstName,
         lastName,
         email,
-        startDate,
-        endDate,
+        startDate: startDate || new Date().toISOString().split("T")[0],
+        endDate: endDate,
         isActive,
+        updatedAt: new Date().toISOString(),
       };
-      
+
       console.log(`Transformed employee ${employeeId}:`, {
-        firstName: transformedEmployee.firstName,
+        id: transformedEmployee.id,
+        name: `${transformedEmployee.firstName} ${transformedEmployee.lastName}`,
         startDate: transformedEmployee.startDate,
         endDate: transformedEmployee.endDate,
-        isActive: transformedEmployee.isActive
+        isActive: transformedEmployee.isActive,
       });
-      
+
       return transformedEmployee;
     });
   }

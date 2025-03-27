@@ -10,17 +10,18 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prismaWithModels = prisma as any;
 
-export interface EmployeeRetentionData {
+export type EmployeeRetentionData = {
   startOfYearCount: number;
   endOfYearCount: number;
   retentionRate: number;
   originalEmployeesRetained: number;
   originalEmployeeRetentionRate: number;
+  turnoverRate: number;
   averageEmploymentDuration: number;
   year: number;
   lastSyncDate: Date | null;
   apiKeyStatus: ApiKeyStatus;
-}
+};
 
 export interface SyncResult {
   success: boolean;
@@ -321,15 +322,29 @@ export async function getEmployeeRetentionData(
       },
     });
 
+    const leftEmployees = await prismaWithModels.employee.findMany({
+      where: {
+        endDate: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    });
+
     const startOfYearCount = startOfYearEmployees.length;
     const endOfYearCount = endOfYearEmployees.length;
     const originalEmployeesRetained = retainedEmployees.length;
+    const leftEmployeesCount = leftEmployees.length;
 
     const retentionRate =
-      startOfYearCount > 0 ? (endOfYearCount / startOfYearCount) * 100 : 0;
-    const originalEmployeeRetentionRate =
       startOfYearCount > 0
         ? (originalEmployeesRetained / startOfYearCount) * 100
+        : 0;
+
+    const averageEmployeeCount = (startOfYearCount + endOfYearCount) / 2;
+    const turnoverRate =
+      averageEmployeeCount > 0
+        ? (leftEmployeesCount / averageEmployeeCount) * 100
         : 0;
 
     let totalDurationInDays = 0;
@@ -365,7 +380,8 @@ export async function getEmployeeRetentionData(
       endOfYearCount,
       retentionRate,
       originalEmployeesRetained,
-      originalEmployeeRetentionRate,
+      originalEmployeeRetentionRate: retentionRate,
+      turnoverRate,
       averageEmploymentDuration,
       year,
       lastSyncDate: lastSync ? lastSync.syncDate : null,
@@ -373,6 +389,75 @@ export async function getEmployeeRetentionData(
     };
   } catch (error) {
     console.error("Fel vid hämtning av personalretentionsdata:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get employee trend data for all years from 2004 to current year
+ */
+export async function getEmployeeTrendData(): Promise<{
+  trendData: Array<{
+    date: string;
+    active: number;
+    joined: number;
+    left: number;
+    formattedDate: string;
+  }>;
+}> {
+  try {
+    const startYear = 2004;
+    const currentYear = new Date().getFullYear();
+
+    const allEmployees = await prismaWithModels.employee.findMany();
+
+    const trendData = [];
+
+    for (let year = startYear; year <= currentYear; year++) {
+      const startOfYear = new Date(year, 0, 1);
+      const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+
+      const activeCount = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            employee.startDate <= endOfYear &&
+            (!employee.endDate || employee.endDate > endOfYear)
+          );
+        }
+      ).length;
+
+      const joinedCount = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            employee.startDate >= startOfYear && employee.startDate <= endOfYear
+          );
+        }
+      ).length;
+
+      const leftCount = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            employee.endDate &&
+            employee.endDate >= startOfYear &&
+            employee.endDate <= endOfYear
+          );
+        }
+      ).length;
+
+      trendData.push({
+        date: `${year}-01-01`,
+        active: activeCount,
+        joined: joinedCount,
+        left: leftCount,
+        formattedDate: `${year}`,
+      });
+    }
+
+    return {
+      trendData,
+    };
+  } catch (error) {
+    console.error("Error fetching employee trend data:", error);
     throw error;
   }
 }
@@ -413,5 +498,134 @@ export async function getLastSyncInfo(): Promise<{
       error
     );
     return { date: null, status: "none" };
+  }
+}
+
+export async function getAllYearsEmployeeRetentionData(): Promise<{
+  retentionDataByYear: Record<number, EmployeeRetentionData>;
+}> {
+  try {
+    const startYear = 2004;
+    const currentYear = new Date().getFullYear();
+
+    const allEmployees = await prismaWithModels.employee.findMany();
+
+    const retentionDataByYear: Record<number, EmployeeRetentionData> = {};
+
+    const lastSync = await prismaWithModels.employeeDataSync.findFirst({
+      orderBy: { syncDate: "desc" },
+    });
+
+    const apiKeyStatus: ApiKeyStatus = lastSync
+      ? (lastSync.apiKeyStatus as ApiKeyStatus)
+      : "unknown";
+
+    let totalEmploymentDurationInYears = 0;
+    let activeEmployeeCount = 0;
+
+    for (const employee of allEmployees) {
+      const startDate = employee.startDate;
+      const endDate = employee.endDate || new Date();
+
+      const durationInYears =
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+      totalEmploymentDurationInYears += durationInYears;
+      activeEmployeeCount++;
+    }
+
+    const overallAverageEmploymentDuration =
+      activeEmployeeCount > 0
+        ? totalEmploymentDurationInYears / activeEmployeeCount
+        : 0;
+
+    for (let year = startYear; year <= currentYear; year++) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+
+      const startOfYearEmployees = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            employee.startDate <= startDate &&
+            (!employee.endDate || employee.endDate > startDate)
+          );
+        }
+      );
+
+      const endOfYearEmployees = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            employee.startDate <= endDate &&
+            (!employee.endDate || employee.endDate > endDate)
+          );
+        }
+      );
+
+      const retainedEmployees = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            employee.startDate <= startDate &&
+            (!employee.endDate || employee.endDate > endDate)
+          );
+        }
+      );
+
+      const allEmployeesInYear = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            (employee.startDate <= endDate &&
+              employee.startDate >= startDate) ||
+            (employee.endDate &&
+              employee.endDate >= startDate &&
+              employee.endDate <= endDate) ||
+            (employee.startDate <= startDate &&
+              (!employee.endDate || employee.endDate >= endDate))
+          );
+        }
+      );
+
+      const leftEmployees = allEmployees.filter(
+        (employee: { startDate: Date; endDate: Date | null }) => {
+          return (
+            employee.endDate &&
+            employee.endDate >= startDate &&
+            employee.endDate <= endDate
+          );
+        }
+      );
+
+      const startOfYearCount = startOfYearEmployees.length;
+      const endOfYearCount = endOfYearEmployees.length;
+      const originalEmployeesRetained = retainedEmployees.length;
+      const leftEmployeesCount = leftEmployees.length;
+
+      const retentionRate =
+        startOfYearCount > 0
+          ? (originalEmployeesRetained / startOfYearCount) * 100
+          : 0;
+
+      const averageEmployeeCount = (startOfYearCount + endOfYearCount) / 2;
+      const turnoverRate =
+        averageEmployeeCount > 0
+          ? (leftEmployeesCount / averageEmployeeCount) * 100
+          : 0;
+
+      retentionDataByYear[year] = {
+        startOfYearCount,
+        endOfYearCount,
+        retentionRate,
+        originalEmployeesRetained,
+        originalEmployeeRetentionRate: retentionRate,
+        turnoverRate,
+        averageEmploymentDuration: overallAverageEmploymentDuration,
+        year,
+        lastSyncDate: lastSync ? lastSync.syncDate : null,
+        apiKeyStatus,
+      };
+    }
+
+    return { retentionDataByYear };
+  } catch (error) {
+    console.error("Error fetching all years employee retention data:", error);
+    throw error;
   }
 }

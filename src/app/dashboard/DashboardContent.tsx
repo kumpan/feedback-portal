@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { TimeFrameSelector } from "@/components/TimeFrameSelector";
 import { NPSTrendChart } from "@/components/NPSTrendChart";
+import { EmployeeTrendChart } from "@/components/EmployeeTrendChart";
 import { SummaryMetrics } from "@/components/SummaryMetrics";
 import SurveyResponsesList from "@/components/SurveyResponsesList";
 import GenerateLink from "@/components/GenerateLink";
@@ -13,6 +14,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EmployeeMetrics } from "@/components/EmployeeMetrics";
 import {
   getEmployeeRetentionData,
+  getEmployeeTrendData,
+  getAllYearsEmployeeRetentionData,
   EmployeeRetentionData,
 } from "@/app/actions/employeeActions";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
@@ -60,21 +63,20 @@ export function DashboardContent({
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [useMock, setUseMock] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
-
-  const defaultEmployeeData: EmployeeRetentionData = {
-    year: currentYear,
-    startOfYearCount: 0,
-    endOfYearCount: 0,
-    retentionRate: 0,
-    originalEmployeesRetained: 0,
-    originalEmployeeRetentionRate: 0,
-    averageEmploymentDuration: 0,
-    lastSyncDate: null,
-    apiKeyStatus: "unknown",
-  };
-
-  const [employeeData, setEmployeeData] =
-    useState<EmployeeRetentionData>(defaultEmployeeData);
+  const [allEmployeeData, setAllEmployeeData] = useState<
+    Record<number, EmployeeRetentionData>
+  >({});
+  const [currentEmployeeData, setCurrentEmployeeData] =
+    useState<EmployeeRetentionData | null>(null);
+  const [employeeTrendData, setEmployeeTrendData] = useState<{
+    trendData: Array<{
+      date: string;
+      active: number;
+      joined: number;
+      left: number;
+      formattedDate: string;
+    }>;
+  } | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -97,10 +99,13 @@ export function DashboardContent({
   }, [timeFrame, getSurveyData]);
 
   const fetchEmployeeData = useCallback(async () => {
-    setError(null);
     try {
-      const data = await getEmployeeRetentionData(currentYear);
-      setEmployeeData(data);
+      const { retentionDataByYear } = await getAllYearsEmployeeRetentionData();
+      setAllEmployeeData(retentionDataByYear);
+      setCurrentEmployeeData(retentionDataByYear[currentYear]);
+
+      const trendData = await getEmployeeTrendData();
+      setEmployeeTrendData(trendData);
     } catch (err) {
       console.error("Error fetching employee data:", err);
     }
@@ -238,7 +243,7 @@ export function DashboardContent({
           onValueChange={handleTabChange}
           className="mt-4"
         >
-          <div className="flex mb-2 justify-between md:items-center gap-2 flex-col md:flex-row">
+          <div className="flex mb-2 md:mb-4 justify-between md:items-center gap-2 flex-col md:flex-row">
             <div className="w-auto">
               <TabsList className="mb-0">
                 <TabsTrigger
@@ -259,10 +264,10 @@ export function DashboardContent({
               {activeTab === "feedback" && (
                 <motion.div
                   key="timeFrameSelector"
-                  initial={{ opacity: 0, x: 8 }}
+                  initial={{ opacity: 0, x: 5 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 8 }}
-                  transition={{ duration: 0.3 }}
+                  exit={{ opacity: 0, x: 5 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <TimeFrameSelector />
                 </motion.div>
@@ -270,23 +275,29 @@ export function DashboardContent({
               {activeTab === "employees" && (
                 <motion.div
                   key="employeeSelector"
-                  initial={{ opacity: 0, x: -8 }}
+                  initial={{ opacity: 0, x: -5 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.3 }}
+                  exit={{ opacity: 0, x: -5 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <div className="flex select-none items-center">
                     <div className="border border-border h-12 rounded-md flex items-center overflow-hidden">
                       <div
                         className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
-                          currentYear <= 2020
+                          currentYear <= 2004
                             ? "opacity-50"
                             : "hover:bg-primary-80/70 transition-colors"
                         }`}
                         onClick={() => {
-                          if (currentYear <= 2020) return;
+                          if (currentYear <= 2004) return;
                           setCurrentYear((prev) => prev - 1);
-                          setTimeout(() => fetchEmployeeData(), 50);
+                          setTimeout(() => {
+                            if (allEmployeeData[currentYear - 1]) {
+                              setCurrentEmployeeData(
+                                allEmployeeData[currentYear - 1]
+                              );
+                            }
+                          }, 50);
                         }}
                       >
                         <ChevronLeft className="h-5 w-5" />
@@ -294,8 +305,13 @@ export function DashboardContent({
                       <div
                         className="px-4 py-2 cursor-pointer hover:bg-primary-80/70 flex transition-colors h-full justify-center items-center rounded-sm"
                         onClick={() => {
-                          setCurrentYear(new Date().getFullYear());
-                          setTimeout(() => fetchEmployeeData(), 50);
+                          const thisYear = new Date().getFullYear();
+                          setCurrentYear(thisYear);
+                          setTimeout(() => {
+                            if (allEmployeeData[thisYear]) {
+                              setCurrentEmployeeData(allEmployeeData[thisYear]);
+                            }
+                          }, 50);
                         }}
                       >
                         {currentYear}
@@ -309,7 +325,13 @@ export function DashboardContent({
                         onClick={() => {
                           if (currentYear >= new Date().getFullYear()) return;
                           setCurrentYear((prev) => prev + 1);
-                          setTimeout(() => fetchEmployeeData(), 50);
+                          setTimeout(() => {
+                            if (allEmployeeData[currentYear + 1]) {
+                              setCurrentEmployeeData(
+                                allEmployeeData[currentYear + 1]
+                              );
+                            }
+                          }, 50);
                         }}
                       >
                         <ChevronRight className="h-5 w-5" />
@@ -337,8 +359,12 @@ export function DashboardContent({
 
           <TabsContent value="employees" className="space-y-6">
             <div className="flex gap-6 flex-col">
-              <EmployeeMetrics retentionData={employeeData} />
-
+              {currentEmployeeData && (
+                <EmployeeMetrics retentionData={currentEmployeeData} />
+              )}
+              {employeeTrendData && (
+                <EmployeeTrendChart trendData={employeeTrendData.trendData} />
+              )}
               <div>
                 <h3 className="text-xl font-medium mb-2">Datasynkronisering</h3>
                 <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
@@ -348,8 +374,12 @@ export function DashboardContent({
               <h3 className="text-xl font-medium mb-2">Testning</h3>
               <Card className="p-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <Button onClick={handleTestSync} disabled={isSyncing}>
-                    {isSyncing ? "Laddar..." : "Force full synkning"}
+                  <Button
+                    onClick={handleTestSync}
+                    disabled={isSyncing}
+                    size="lg"
+                  >
+                    {isSyncing ? "Laddar..." : "Full synkning"}
                   </Button>
 
                   <div className="flex items-center gap-2">
