@@ -30,7 +30,6 @@ model SurveyResponse {
   updatedAt         DateTime    @updatedAt
 }
 
-// NextAuth Models
 model Account {
   id                 String  @id @default(cuid())
   userId             String
@@ -74,4 +73,34 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// Employee Data Models
+model Employee {
+  id            String    @id @default(cuid())
+  employeeId    String    @unique // External ID from Hailey HR
+  firstName     String
+  lastName      String
+  email         String?
+  startDate     DateTime
+  endDate       DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([startDate, endDate])
+  @@index([isActive])
+}
+
+model EmployeeDataSync {
+  id            String    @id @default(cuid())
+  syncDate      DateTime  @default(now())
+  success       Boolean
+  message       String?   @db.Text
+  recordsAdded  Int       @default(0)
+  recordsUpdated Int      @default(0)
+  apiKeyStatus  String    @default("unknown")
+  apiKeyExpiry  DateTime?
+
+  @@index([syncDate])
 }

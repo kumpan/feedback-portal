@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Copy, Check } from "lucide-react";
 
 interface SurveyResponsesListProps {
   responses: Array<{
@@ -17,6 +20,7 @@ interface SurveyResponsesListProps {
     createdAt: Date;
     clientName: string;
     companyName: string;
+    uniqueCode?: string;
   }>;
 }
 
@@ -25,8 +29,8 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.2,
+      staggerChildren: 0.02,
+      delayChildren: 0.15,
     },
   },
 };
@@ -76,6 +80,26 @@ export default function SurveyResponsesList({
     (typeof responses)[0] | null
   >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [surveyUrl, setSurveyUrl] = useState("");
+
+  useEffect(() => {
+    if (selectedResponse && selectedResponse.uniqueCode) {
+      const isLegitimateLink =
+        selectedResponse.uniqueCode &&
+        !selectedResponse.uniqueCode.startsWith("ANON-");
+
+      if (isLegitimateLink) {
+        const domain = window.location.origin;
+        const url = `${domain}/?code=${selectedResponse.uniqueCode}`;
+        setSurveyUrl(url);
+      } else {
+        setSurveyUrl("");
+      }
+    } else {
+      setSurveyUrl("");
+    }
+  }, [selectedResponse]);
 
   const openResponseDetails = (response: (typeof responses)[0]) => {
     setSelectedResponse(response);
@@ -84,6 +108,13 @@ export default function SurveyResponsesList({
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setIsCopied(false);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(surveyUrl);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   if (responses.length === 0) {
@@ -118,7 +149,6 @@ export default function SurveyResponsesList({
                 transition: { duration: 0.2 },
               }}
               custom={index}
-              layout
             >
               <div className="p-4">
                 <motion.div
@@ -191,50 +221,64 @@ export default function SurveyResponsesList({
         >
           <motion.div
             className="space-y-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.1, delayChildren: 0.2 }}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1,
+                  delayChildren: 0.2,
+                },
+              },
+            }}
           >
             <motion.div
-              className="text-xl mb-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 24,
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 24,
+                  },
                 },
               }}
             >
               {new Date(selectedResponse.createdAt).toLocaleDateString()}
             </motion.div>
+
             <motion.div
               className="grid grid-cols-3 gap-2 text-center"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 24,
-                  delayChildren: 0.1,
-                  staggerChildren: 0.1,
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 24,
+                    staggerChildren: 0.1,
+                  },
                 },
               }}
             >
               <motion.div
                 className="bg-primary-80/30 rounded-md pt-4 pb-3"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  transition: {
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 24,
+                variants={{
+                  hidden: { opacity: 0, scale: 0.9 },
+                  visible: {
+                    opacity: 1,
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 24,
+                    },
                   },
                 }}
               >
@@ -245,15 +289,16 @@ export default function SurveyResponsesList({
               </motion.div>
               <motion.div
                 className="bg-primary-80/30 rounded-md pt-4 pb-3"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  transition: {
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 24,
-                    delay: 0.1,
+                variants={{
+                  hidden: { opacity: 0, scale: 0.9 },
+                  visible: {
+                    opacity: 1,
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 24,
+                    },
                   },
                 }}
               >
@@ -266,15 +311,16 @@ export default function SurveyResponsesList({
               </motion.div>
               <motion.div
                 className="bg-primary-80/30 rounded-md pt-4 pb-3"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  transition: {
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 24,
-                    delay: 0.2,
+                variants={{
+                  hidden: { opacity: 0, scale: 0.9 },
+                  visible: {
+                    opacity: 1,
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 24,
+                    },
                   },
                 }}
               >
@@ -288,42 +334,84 @@ export default function SurveyResponsesList({
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 24,
-                  delay: 0.3,
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 24,
+                  },
                 },
               }}
             >
-              <h3 className="font-medium mb-2">Vad vi gjorde bra:</h3>
+              <h3 className="font-medium mb-1">Vad vi gjorde bra:</h3>
               <p className="bg-primary-80/30 p-4 rounded-sm">
                 {selectedResponse.whatWeDidWell || "Ingen feedback"}
               </p>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 24,
-                  delay: 0.4,
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 24,
+                  },
                 },
               }}
             >
-              <h3 className="font-medium mb-2">Vad vi kan förbättra:</h3>
+              <h3 className="font-medium mb-1">Vad vi kan förbättra:</h3>
               <p className="bg-primary-80/30 p-4 rounded-sm">
                 {selectedResponse.whatWeCanImprove || "Ingen feedback"}
               </p>
             </motion.div>
+
+            {selectedResponse.uniqueCode &&
+              !selectedResponse.uniqueCode.startsWith("ANON-") && (
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 24,
+                      },
+                    },
+                  }}
+                >
+                  <h3 className="font-medium mb-1">Kundens länk:</h3>
+                  <div className="flex items-center gap-2">
+                    <Input value={surveyUrl} readOnly className="flex-1" />
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 10,
+                      }}
+                    >
+                      <Button
+                        onClick={copyToClipboard}
+                        variant="outline"
+                        size="lg"
+                        className="transition-all duration-200"
+                      >
+                        {isCopied ? <Check size={16} /> : <Copy size={16} />}
+                      </Button>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
           </motion.div>
         </Modal>
       )}

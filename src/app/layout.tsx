@@ -12,7 +12,7 @@ const APP_NAME = "Feedback Portal";
 const APP_DEFAULT_TITLE = "Feedback Portal | Kumpan";
 const APP_TITLE_TEMPLATE = "%s | Kumpan";
 const APP_DESCRIPTION =
-  "Help us here at Kumpan to improve. We would like to collect insights to imrpove clients.";
+  "Help us here at Kumpan to improve. We would love to collect insights and feedback from our beloved clients.";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -67,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} font-sans antialiased bg-primary-90 text-foreground overflow-y-auto scrollbar-gutter-stable`}
+        className={`${spaceGrotesk.variable} font-sans selection:bg-foreground selection:text-background antialiased bg-primary-90 text-foreground overflow-y-auto scrollbar-gutter-stable`}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>

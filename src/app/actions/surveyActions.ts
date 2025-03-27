@@ -27,6 +27,7 @@ export interface SurveyData {
     createdAt: Date;
     clientName: string;
     companyName: string;
+    uniqueCode?: string;
   }>;
 }
 
@@ -56,8 +57,9 @@ export async function getSurveyData(timeFrame: string): Promise<SurveyData> {
     whatWeCanImprove: response.whatWeCanImprove,
     completed: response.completed,
     createdAt: response.createdAt,
-    clientName: response.link.clientName,
-    companyName: response.link.companyName,
+    clientName: response.link?.clientName || "Anonymous",
+    companyName: response.link?.companyName || "Unknown",
+    uniqueCode: response.link?.uniqueCode
   }));
 
   const processedData = processSurveyData(timeframeResponses);

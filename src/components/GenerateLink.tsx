@@ -1,20 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Copy, Check } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
-const GenerateLink = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function GenerateLink() {
+  const [isOpen, setIsOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const button = document.getElementById("generate-link-button");
+    if (button) {
+      const handleClick = () => {
+        setIsOpen(true);
+      };
+      button.addEventListener("click", handleClick);
+      return () => {
+        button.removeEventListener("click", handleClick);
+      };
+    }
+  }, []);
 
   const handleGenerateLink = async () => {
     if (!clientName || !companyName) {
@@ -55,7 +68,7 @@ const GenerateLink = () => {
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
+    setIsOpen(false);
     setClientName("");
     setCompanyName("");
     setGeneratedLink("");
@@ -64,12 +77,12 @@ const GenerateLink = () => {
 
   return (
     <>
-      <Button onClick={() => setIsModalOpen(true)} size="lg">
+      <Button id="generate-link-button" size="lg">
         Generera länk
       </Button>
 
       <Modal
-        isOpen={isModalOpen}
+        isOpen={isOpen}
         onClose={closeModal}
         title="Generera länk"
         className="max-w-lg"
@@ -139,5 +152,3 @@ const GenerateLink = () => {
     </>
   );
 };
-
-export default GenerateLink;
