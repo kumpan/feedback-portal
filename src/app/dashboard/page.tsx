@@ -39,6 +39,7 @@ export default async function Dashboard() {
       </div>
       <TimeFrameProvider initialTimeFrame="last30days">
         <DashboardContent
+          session={session}
           positiveMessage={positiveMessage}
           getSurveyData={getSurveyData}
         />
