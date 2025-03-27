@@ -9,7 +9,7 @@ import GenerateLink from "@/components/GenerateLink";
 import { useTimeFrame } from "@/context/TimeFrameContext";
 import { Session } from "next-auth";
 import { SurveyData } from "@/app/actions/surveyActions";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { EmployeeMetrics } from "@/components/EmployeeMetrics";
 import {
   getEmployeeRetentionData,
@@ -255,50 +255,70 @@ export function DashboardContent({
                 </TabsTrigger>
               </TabsList>
             </div>
-            {activeTab === "feedback" && <TimeFrameSelector />}
-            {activeTab === "employees" && (
-              <div className="flex select-none items-center">
-                <div className="border border-border h-12 rounded-md flex items-center overflow-hidden">
-                  <div
-                    className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
-                      currentYear <= 2020
-                        ? "opacity-50"
-                        : "hover:bg-primary-80/70 transition-colors"
-                    }`}
-                    onClick={() => {
-                      if (currentYear <= 2020) return;
-                      setCurrentYear((prev) => prev - 1);
-                      setTimeout(() => fetchEmployeeData(), 50);
-                    }}
-                  >
-                    <ChevronLeft className="h-5 w-5" />
+            <AnimatePresence mode="wait" initial={false}>
+              {activeTab === "feedback" && (
+                <motion.div
+                  key="timeFrameSelector"
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <TimeFrameSelector />
+                </motion.div>
+              )}
+              {activeTab === "employees" && (
+                <motion.div
+                  key="employeeSelector"
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex select-none items-center">
+                    <div className="border border-border h-12 rounded-md flex items-center overflow-hidden">
+                      <div
+                        className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
+                          currentYear <= 2020
+                            ? "opacity-50"
+                            : "hover:bg-primary-80/70 transition-colors"
+                        }`}
+                        onClick={() => {
+                          if (currentYear <= 2020) return;
+                          setCurrentYear((prev) => prev - 1);
+                          setTimeout(() => fetchEmployeeData(), 50);
+                        }}
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </div>
+                      <div
+                        className="px-4 py-2 cursor-pointer hover:bg-primary-80/70 flex transition-colors h-full justify-center items-center rounded-sm"
+                        onClick={() => {
+                          setCurrentYear(new Date().getFullYear());
+                          setTimeout(() => fetchEmployeeData(), 50);
+                        }}
+                      >
+                        {currentYear}
+                      </div>
+                      <div
+                        className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
+                          currentYear >= new Date().getFullYear()
+                            ? "opacity-50"
+                            : "hover:bg-primary-80/70 transition-colors"
+                        }`}
+                        onClick={() => {
+                          if (currentYear >= new Date().getFullYear()) return;
+                          setCurrentYear((prev) => prev + 1);
+                          setTimeout(() => fetchEmployeeData(), 50);
+                        }}
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    className="px-4 py-2 cursor-pointer hover:bg-primary-80/70 flex transition-colors h-full justify-center items-center rounded-sm"
-                    onClick={() => {
-                      setCurrentYear(new Date().getFullYear());
-                      setTimeout(() => fetchEmployeeData(), 50);
-                    }}
-                  >
-                    {currentYear}
-                  </div>
-                  <div
-                    className={`px-3 cursor-pointer rounded-sm flex items-center justify-center h-full ${
-                      currentYear >= new Date().getFullYear()
-                        ? "opacity-50"
-                        : "hover:bg-primary-80/70 transition-colors"
-                    }`}
-                    onClick={() => {
-                      if (currentYear >= new Date().getFullYear()) return;
-                      setCurrentYear((prev) => prev + 1);
-                      setTimeout(() => fetchEmployeeData(), 50);
-                    }}
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </div>
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <TabsContent value="feedback" className="space-y-2 md:space-y-4">
             <SummaryMetrics surveyData={surveyData} />
