@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 function generateUniqueCode(length = 6) {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -13,6 +15,8 @@ function generateUniqueCode(length = 6) {
 export async function POST(request: NextRequest) {
   try {
     const { clientName, companyName } = await request.json();
+
+    const session = await getServerSession(authOptions);
 
     if (!clientName || !companyName) {
       return NextResponse.json(
@@ -28,6 +32,7 @@ export async function POST(request: NextRequest) {
         uniqueCode,
         clientName,
         companyName,
+        createdById: session?.user?.id || null,
         response: {
           create: {
             completed: false,
@@ -36,6 +41,7 @@ export async function POST(request: NextRequest) {
       },
       include: {
         response: true,
+        createdBy: true,
       },
     });
 
@@ -65,7 +71,17 @@ export async function GET(request: NextRequest) {
 
     const surveyLink = await prisma.surveyLink.findUnique({
       where: { uniqueCode: code },
-      include: { response: true },
+      include: {
+        response: true,
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            email: true,
+          },
+        },
+      },
     });
 
     if (!surveyLink) {

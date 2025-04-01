@@ -28,6 +28,11 @@ export interface SurveyData {
     clientName: string;
     companyName: string;
     uniqueCode?: string;
+    createdBy?: {
+      name: string | null;
+      image: string | null;
+      email: string | null;
+    } | null;
   }>;
 }
 
@@ -41,7 +46,17 @@ export async function getSurveyData(timeFrame: string): Promise<SurveyData> {
       },
     },
     include: {
-      link: true,
+      link: {
+        include: {
+          createdBy: {
+            select: {
+              name: true,
+              image: true,
+              email: true
+            }
+          }
+        }
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -59,7 +74,8 @@ export async function getSurveyData(timeFrame: string): Promise<SurveyData> {
     createdAt: response.createdAt,
     clientName: response.link?.clientName || "Anonymous",
     companyName: response.link?.companyName || "Unknown",
-    uniqueCode: response.link?.uniqueCode
+    uniqueCode: response.link?.uniqueCode,
+    createdBy: response.link?.createdBy || null
   }));
 
   const processedData = processSurveyData(timeframeResponses);
