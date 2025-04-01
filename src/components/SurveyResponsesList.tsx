@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, Check } from "lucide-react";
+import Image from "next/image";
 
 interface SurveyResponsesListProps {
   responses: Array<{
@@ -21,6 +22,11 @@ interface SurveyResponsesListProps {
     clientName: string;
     companyName: string;
     uniqueCode?: string;
+    createdBy?: {
+      name: string | null;
+      image: string | null;
+      email: string | null;
+    } | null;
   }>;
 }
 
@@ -137,10 +143,10 @@ export default function SurveyResponsesList({
           {responses.map((response, index) => (
             <motion.div
               key={response.id}
-              className={`cursor-pointer rounded-lg transition-colors ${
+              className={`cursor-pointer rounded-xl transition-colors ${
                 response.completed
                   ? "bg-card hover:bg-card-hover"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
               onClick={() => openResponseDetails(response)}
               variants={itemVariants}
@@ -152,11 +158,11 @@ export default function SurveyResponsesList({
             >
               <div className="p-4">
                 <motion.div
-                  className="flex justify-between items-start mb-2"
+                  className="flex justify-between items-center mb-4"
                   variants={childVariants}
                 >
-                  <div>
-                    <h3 className="font-medium">
+                  <div className="flex-1 min-w-0 mr-3">
+                    <h3 className="font-medium text-lg truncate">
                       <span>{response.companyName}</span>
                       {response.clientName &&
                         response.clientName.trim() !== "Anonymous" && (
@@ -165,29 +171,42 @@ export default function SurveyResponsesList({
                     </h3>
                   </div>
                   <motion.span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      response.completed
-                        ? "bg-primary-60/30"
-                        : "bg-gray-300 text-gray-800"
-                    }`}
+                    className={`rounded-full text-xs flex items-center gap-2`}
                     variants={childVariants}
                   >
-                    {response.completed ? "Svarad" : "Ej besvarad"}
+                    {response.createdBy && response.createdBy.name && (
+                      <>
+                        {response.createdBy.image && (
+                          <Image
+                            src={response.createdBy.image}
+                            alt={response.createdBy.name || "User"}
+                            width={32}
+                            height={32}
+                            className={`rounded-lg ml-1 ${
+                              response.completed
+                                ? ""
+                                : "filter-[saturate(0)] opacity-90"
+                            }`}
+                          />
+                        )}
+                      </>
+                    )}
                   </motion.span>
                 </motion.div>
+
                 <motion.div
                   className="flex justify-between text-sm mt-2 opacity-60"
                   variants={childVariants}
                 >
                   <div>
                     <p className="">NPS</p>
-                    <p className="font-medium">
+                    <p className="font-medium text-lg">
                       {response.nps !== null ? response.nps : "-"}
                     </p>
                   </div>
                   <div>
                     <p>Nöjdhet</p>
-                    <p className="font-medium">
+                    <p className="font-medium text-lg">
                       {response.satisfaction !== null
                         ? response.satisfaction
                         : "-"}
@@ -195,7 +214,7 @@ export default function SurveyResponsesList({
                   </div>
                   <div>
                     <p>Kommunikation</p>
-                    <p className="font-medium">
+                    <p className="font-medium text-lg">
                       {response.communication !== null
                         ? response.communication
                         : "-"}
@@ -228,13 +247,14 @@ export default function SurveyResponsesList({
               visible: {
                 opacity: 1,
                 transition: {
-                  staggerChildren: 0.1,
-                  delayChildren: 0.2,
+                  staggerChildren: 0.05,
+                  delayChildren: 0.1,
                 },
               },
             }}
           >
             <motion.div
+              className="flex items-center"
               variants={{
                 hidden: { opacity: 0, y: 10 },
                 visible: {
@@ -248,7 +268,30 @@ export default function SurveyResponsesList({
                 },
               }}
             >
-              {new Date(selectedResponse.createdAt).toLocaleDateString()}
+              {selectedResponse.createdBy &&
+                selectedResponse.createdBy.name && (
+                  <div className="flex items-center gap-2">
+                    {selectedResponse.createdBy.image && (
+                      <Image
+                        src={selectedResponse.createdBy.image}
+                        alt={selectedResponse.createdBy.name || "User"}
+                        width={44}
+                        height={44}
+                        className="rounded-lg"
+                      />
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-lg">
+                        {selectedResponse.createdBy.name}
+                      </span>
+                      <span className="text-sm">
+                        {new Date(
+                          selectedResponse.createdAt
+                        ).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                )}
             </motion.div>
 
             <motion.div
@@ -373,8 +416,8 @@ export default function SurveyResponsesList({
               </p>
             </motion.div>
 
-            {selectedResponse.uniqueCode &&
-              !selectedResponse.uniqueCode.startsWith("ANON-") && (
+            <div className="space-y-6">
+              {surveyUrl && (
                 <motion.div
                   variants={{
                     hidden: { opacity: 0, y: 10 },
@@ -412,6 +455,7 @@ export default function SurveyResponsesList({
                   </div>
                 </motion.div>
               )}
+            </div>
           </motion.div>
         </Modal>
       )}

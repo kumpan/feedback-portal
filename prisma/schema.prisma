@@ -8,43 +8,44 @@ datasource db {
 }
 
 model SurveyLink {
-  id          Int       @id @default(autoincrement())
-  uniqueCode  String    @unique
+  id          Int             @id @default(autoincrement())
+  uniqueCode  String          @unique
   clientName  String
   companyName String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime        @default(now())
+  createdById String?
+  createdBy   User?           @relation(fields: [createdById], references: [id])
   response    SurveyResponse?
 }
 
 model SurveyResponse {
-  id                Int         @id @default(autoincrement())
-  linkId            Int         @unique
-  link              SurveyLink  @relation(fields: [linkId], references: [id])
-  nps               Int?
-  satisfaction      Int?
-  communication     Int?
-  whatWeDidWell     String?     @db.Text
-  whatWeCanImprove  String?     @db.Text
-  completed         Boolean     @default(false)
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  id               Int        @id @default(autoincrement())
+  linkId           Int        @unique
+  nps              Int?
+  satisfaction     Int?
+  communication    Int?
+  whatWeDidWell    String?
+  whatWeCanImprove String?
+  completed        Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  link             SurveyLink @relation(fields: [linkId], references: [id])
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -58,13 +59,14 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?      @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
+  surveyLinks   SurveyLink[]
 }
 
 model VerificationToken {
@@ -75,32 +77,31 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Employee Data Models
 model Employee {
-  id            String    @id @default(cuid())
-  employeeId    String    @unique // External ID from Hailey HR
-  firstName     String
-  lastName      String
-  email         String?
-  startDate     DateTime
-  endDate       DateTime?
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  employeeId String    @unique
+  firstName  String
+  lastName   String
+  email      String?
+  startDate  DateTime
+  endDate    DateTime?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([startDate, endDate])
   @@index([isActive])
 }
 
 model EmployeeDataSync {
-  id            String    @id @default(cuid())
-  syncDate      DateTime  @default(now())
-  success       Boolean
-  message       String?   @db.Text
-  recordsAdded  Int       @default(0)
-  recordsUpdated Int      @default(0)
-  apiKeyStatus  String    @default("unknown")
-  apiKeyExpiry  DateTime?
+  id             String    @id @default(cuid())
+  syncDate       DateTime  @default(now())
+  success        Boolean
+  message        String?
+  recordsAdded   Int       @default(0)
+  recordsUpdated Int       @default(0)
+  apiKeyStatus   String    @default("unknown")
+  apiKeyExpiry   DateTime?
 
   @@index([syncDate])
 }
