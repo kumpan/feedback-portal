@@ -163,10 +163,10 @@ export default function SurveyResponsesList({
                 >
                   <div className="flex-1 min-w-0 mr-3">
                     <h3 className="font-medium text-lg truncate">
-                      <span>{response.companyName}</span>
-                      {response.clientName &&
-                        response.clientName.trim() !== "Anonymous" && (
-                          <span>, {response.clientName}</span>
+                      <span>{response.clientName}</span>
+                      {response.companyName &&
+                        response.companyName.trim() !== "Anonymous" && (
+                          <span>, {response.companyName}</span>
                         )}
                     </h3>
                   </div>
@@ -231,10 +231,10 @@ export default function SurveyResponsesList({
         <Modal
           isOpen={isModalOpen}
           onClose={closeModal}
-          title={`${selectedResponse.companyName}${
-            selectedResponse.clientName &&
-            selectedResponse.clientName !== "Anonymous"
-              ? `, ${selectedResponse.clientName}`
+          title={`${selectedResponse.clientName}${
+            selectedResponse.companyName &&
+            selectedResponse.companyName !== "Anonymous"
+              ? `, ${selectedResponse.companyName}`
               : ""
           }`}
         >
@@ -281,7 +281,7 @@ export default function SurveyResponsesList({
                       />
                     )}
                     <div className="flex flex-col">
-                      <span className="text-lg">
+                      <span className="text-lg leading-tight">
                         {selectedResponse.createdBy.name}
                       </span>
                       <span className="text-sm">

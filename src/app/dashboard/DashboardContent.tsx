@@ -8,9 +8,7 @@ import { SummaryMetrics } from "@/components/SummaryMetrics";
 import SurveyResponsesList from "@/components/SurveyResponsesList";
 import GenerateLink from "@/components/GenerateLink";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { MessageSquare, User as UserIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageSquare, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { EmployeeMetrics } from "@/components/EmployeeMetrics";
 import EmployeeDataSync from "@/components/EmployeeDataSync";
 import {
@@ -22,15 +20,7 @@ import {
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SurveyData } from "@/app/actions/surveyActions";
 import { Session } from "next-auth";
-
-interface Employee {
-  id: string;
-  firstName: string;
-  lastName: string;
-  startDate: string;
-  endDate: string | null;
-  isActive: boolean;
-}
+import { useTimeFrame } from "@/context/TimeFrameContext";
 
 interface DashboardContentProps {
   session: Session;
@@ -43,7 +33,7 @@ export default function DashboardContent({
   positiveMessage,
   getSurveyData,
 }: DashboardContentProps) {
-  const [timeFrame] = useState("last30days");
+  const { timeFrame } = useTimeFrame();
   const [activeTab, setActiveTab] = useState("feedback");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -58,10 +48,6 @@ export default function DashboardContent({
     responses: [],
   });
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [useMock, setUseMock] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
 
   const defaultEmployeeData: EmployeeRetentionData = {
     year: currentYear,
@@ -76,9 +62,13 @@ export default function DashboardContent({
     apiKeyStatus: "unknown",
   };
 
-  const [, setEmployeeData] = useState<EmployeeRetentionData>(defaultEmployeeData);
-  const [allEmployeeData, setAllEmployeeData] = useState<Record<number, EmployeeRetentionData>>({});
-  const [currentEmployeeData, setCurrentEmployeeData] = useState<EmployeeRetentionData | null>(null);
+  const [, setEmployeeData] =
+    useState<EmployeeRetentionData>(defaultEmployeeData);
+  const [allEmployeeData, setAllEmployeeData] = useState<
+    Record<number, EmployeeRetentionData>
+  >({});
+  const [currentEmployeeData, setCurrentEmployeeData] =
+    useState<EmployeeRetentionData | null>(null);
   const [employeeTrendData, setEmployeeTrendData] = useState<{
     trendData: Array<{
       date: string;
@@ -98,7 +88,9 @@ export default function DashboardContent({
         setSurveyData(data);
       } catch (err) {
         console.error("Error fetching survey data:", err);
-        setError(err instanceof Error ? err : new Error("An unknown error occurred"));
+        setError(
+          err instanceof Error ? err : new Error("An unknown error occurred")
+        );
       } finally {
         setLoading(false);
       }
@@ -125,11 +117,7 @@ export default function DashboardContent({
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch("/api/test-employees");
-      const data = await response.json();
-      if (data.success) {
-        setEmployees(data.employees);
-      }
+      await fetch("/api/test-employees");
     } catch (error) {
       console.error("Error fetching employees:", error);
     }
@@ -141,29 +129,6 @@ export default function DashboardContent({
       fetchEmployees();
     }
   }, [activeTab, fetchEmployeeData]);
-
-  const handleTestSync = async () => {
-    setIsSyncing(true);
-    setSyncMessage("Synkroniserar anställda...");
-    try {
-      const response = await fetch("/api/sync-employees", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ forceFullSync: true, useMock }),
-      });
-      const data = await response.json();
-      setSyncMessage(data.message);
-      fetchEmployees();
-      fetchEmployeeData();
-    } catch (error) {
-      console.error("Error syncing employees:", error);
-      setSyncMessage("Fel vid synkronisering av anställda");
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -266,7 +231,7 @@ export default function DashboardContent({
                 </TabsTrigger>
                 <TabsTrigger
                   value="employees"
-                  icon={<UserIcon className="h-4 w-4" />}
+                  icon={<User className="h-4 w-4" />}
                 >
                   Anställda
                 </TabsTrigger>
@@ -305,7 +270,9 @@ export default function DashboardContent({
                           setCurrentYear((prev) => prev - 1);
                           setTimeout(() => {
                             if (allEmployeeData[currentYear - 1]) {
-                              setCurrentEmployeeData(allEmployeeData[currentYear - 1]);
+                              setCurrentEmployeeData(
+                                allEmployeeData[currentYear - 1]
+                              );
                             }
                           }, 50);
                         }}
@@ -337,7 +304,9 @@ export default function DashboardContent({
                           setCurrentYear((prev) => prev + 1);
                           setTimeout(() => {
                             if (allEmployeeData[currentYear + 1]) {
-                              setCurrentEmployeeData(allEmployeeData[currentYear + 1]);
+                              setCurrentEmployeeData(
+                                allEmployeeData[currentYear + 1]
+                              );
                             }
                           }, 50);
                         }}
@@ -377,72 +346,6 @@ export default function DashboardContent({
                 <h3 className="text-xl font-medium mb-2">Datasynkronisering</h3>
                 <EmployeeDataSync onSyncComplete={fetchEmployeeData} />
               </div>
-            </div>
-            <div className="mt-8">
-              <h3 className="text-xl font-medium mb-2">Testning</h3>
-              <Card className="p-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <Button
-                    onClick={handleTestSync}
-                    disabled={isSyncing}
-                    size="lg"
-                  >
-                    {isSyncing ? "Laddar..." : "Full synkning"}
-                  </Button>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="useMock"
-                      checked={useMock}
-                      onChange={(e) => setUseMock(e.target.checked)}
-                      className="h-4 w-4"
-                    />
-                    <label htmlFor="useMock">Använd testdata</label>
-                  </div>
-
-                  {syncMessage && <div>{syncMessage}</div>}
-                </div>
-
-                <div className="overflow-x-auto border rounded-2xl">
-                  <table className="min-w-full bg-white">
-                    <thead>
-                      <tr>
-                        <th className="py-2 px-4 border-b">Namn</th>
-                        <th className="py-2 px-4 border-b">Startdatum</th>
-                        <th className="py-2 px-4 border-b">Slutdatum</th>
-                        <th className="py-2 px-4 border-b">Aktiv</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {employees.map((employee) => (
-                        <tr key={employee.id}>
-                          <td className="py-2 text-center px-4 border-b">
-                            {employee.firstName} {employee.lastName}
-                          </td>
-                          <td className="py-2 text-center px-4 border-b">
-                            {employee.startDate}
-                          </td>
-                          <td className="py-2 text-center px-4 border-b">
-                            {employee.endDate || "N/A"}
-                          </td>
-                          <td className="py-2 text-center px-4 border-b">
-                            <span
-                              className={`px-2 py-1 rounded text-xs ${
-                                employee.isActive
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {employee.isActive ? "Ja" : "Nej"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
             </div>
           </TabsContent>
         </Tabs>
