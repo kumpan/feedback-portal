@@ -1,10 +1,10 @@
 export interface SurveyResponse {
   id: number;
   nps: number | null;
-  satisfaction: number | null;
   communication: number | null;
-  whatWeDidWell: string | null;
-  whatWeCanImprove: string | null;
+  expectationMet: boolean | null;
+  potentialReferral: string | null;
+  feedback: string | null;
   createdAt: Date;
   completed?: boolean;
   link?: {
@@ -68,14 +68,14 @@ export function processSurveyData(responses: SurveyResponse[]) {
     latestResponse && latestResponse.nps ? latestResponse.nps : 0;
 
   const validSatisfactionResponses = responses.filter(
-    (r) => r.satisfaction !== null
+    (r) => r.communication !== null
   );
   const avgSatisfaction =
     validSatisfactionResponses.length > 0
       ? parseFloat(
           (
             validSatisfactionResponses.reduce(
-              (sum, r) => sum + (r.satisfaction as number),
+              (sum, r) => sum + (r.communication as number),
               0
             ) / validSatisfactionResponses.length
           ).toFixed(2)
@@ -101,7 +101,6 @@ export function processSurveyData(responses: SurveyResponse[]) {
     string,
     {
       npsScores: number[];
-      satisfaction: number;
       communication: number;
       count: number;
     }
@@ -111,17 +110,12 @@ export function processSurveyData(responses: SurveyResponse[]) {
     const date = r.createdAt.toISOString().split("T")[0];
     const entry = dailyData.get(date) || {
       npsScores: [],
-      satisfaction: 0,
       communication: 0,
       count: 0,
     };
 
     if (r.nps !== null) {
       entry.npsScores.push(r.nps);
-    }
-
-    if (r.satisfaction !== null) {
-      entry.satisfaction += r.satisfaction;
     }
 
     if (r.communication !== null) {
@@ -137,10 +131,6 @@ export function processSurveyData(responses: SurveyResponse[]) {
     .map(([date, data]) => ({
       date,
       nps: calculateNPS(data.npsScores),
-      satisfaction:
-        data.count > 0
-          ? Math.round((data.satisfaction / data.count) * 10) / 10
-          : 0,
       communication:
         data.count > 0
           ? Math.round((data.communication / data.count) * 10) / 10

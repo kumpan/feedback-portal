@@ -27,31 +27,51 @@ export async function POST(request: NextRequest) {
 
     const uniqueCode = generateUniqueCode();
 
-    const surveyLink = await prisma.surveyLink.create({
-      data: {
-        uniqueCode,
-        clientName,
-        companyName,
-        createdById: session?.user?.id || null,
-        response: {
-          create: {
-            completed: false,
-          },
+    const createData: any = {
+      uniqueCode,
+      clientName,
+      companyName,
+      response: {
+        create: {
+          completed: false,
         },
       },
+    };
+
+    // Only set createdById if we have a valid user ID
+    if (session?.user?.id) {
+      // Check if the user exists in the database
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+      
+      if (user) {
+        createData.createdById = session.user.id;
+      } else {
+        console.warn(`User with ID ${session.user.id} not found in database`);
+      }
+    } else {
+      console.warn("No user session found when creating survey link");
+    }
+
+    const surveyLink = await prisma.surveyLink.create({
+      data: createData,
       include: {
         response: true,
         createdBy: true,
       },
     });
 
-    const surveyUrl = `${request.nextUrl.origin}/?code=${uniqueCode}`;
+    const surveyUrl = `${request.nextUrl.origin}/survey/${surveyLink.uniqueCode}`;
 
     return NextResponse.json({ surveyLink, surveyUrl });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating survey link:", error);
     return NextResponse.json(
-      { error: "Failed to create survey link" },
+      { 
+        error: "Failed to create survey link", 
+        details: error.message || "Unknown error" 
+      },
       { status: 500 }
     );
   }

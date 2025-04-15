@@ -11,7 +11,6 @@ export interface SurveyData {
   trendData: Array<{
     date: string;
     nps: number;
-    satisfaction: number;
     communication: number;
   }>;
   totalResponses: number;
@@ -19,10 +18,10 @@ export interface SurveyData {
   responses: Array<{
     id: number;
     nps: number | null;
-    satisfaction: number | null;
     communication: number | null;
-    whatWeDidWell: string | null;
-    whatWeCanImprove: string | null;
+    expectationMet: boolean | null;
+    potentialReferral: string | null;
+    feedback: string | null;
     completed: boolean;
     createdAt: Date;
     clientName: string;
@@ -66,10 +65,10 @@ export async function getSurveyData(timeFrame: string): Promise<SurveyData> {
   const responses = timeframeResponses.map((response) => ({
     id: response.id,
     nps: response.nps,
-    satisfaction: response.satisfaction,
     communication: response.communication,
-    whatWeDidWell: response.whatWeDidWell,
-    whatWeCanImprove: response.whatWeCanImprove,
+    expectationMet: response.expectationMet,
+    potentialReferral: response.potentialReferral,
+    feedback: response.feedback,
     completed: response.completed,
     createdAt: response.createdAt,
     clientName: response.link?.clientName || "Anonymous",

@@ -19,17 +19,17 @@ model SurveyLink {
 }
 
 model SurveyResponse {
-  id               Int        @id @default(autoincrement())
-  linkId           Int        @unique
-  nps              Int?
-  satisfaction     Int?
-  communication    Int?
-  whatWeDidWell    String?
-  whatWeCanImprove String?
-  completed        Boolean    @default(false)
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-  link             SurveyLink @relation(fields: [linkId], references: [id])
+  id                Int        @id @default(autoincrement())
+  linkId            Int        @unique
+  nps               Int?
+  communication     Int?
+  completed         Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  expectationMet    Boolean?
+  potentialReferral String?
+  feedback          String?
+  link              SurveyLink @relation(fields: [linkId], references: [id])
 }
 
 model Account {

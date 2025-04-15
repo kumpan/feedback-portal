@@ -13,10 +13,10 @@ interface SurveyResponsesListProps {
   responses: Array<{
     id: number;
     nps: number | null;
-    satisfaction: number | null;
     communication: number | null;
-    whatWeDidWell: string | null;
-    whatWeCanImprove: string | null;
+    expectationMet: string | null;
+    potentialReferral: string | null;
+    feedback: string | null;
     completed: boolean;
     createdAt: Date;
     clientName: string;
@@ -205,18 +205,20 @@ export default function SurveyResponsesList({
                     </p>
                   </div>
                   <div>
-                    <p>Nöjdhet</p>
-                    <p className="font-medium text-lg">
-                      {response.satisfaction !== null
-                        ? response.satisfaction
-                        : "-"}
-                    </p>
-                  </div>
-                  <div>
                     <p>Kommunikation</p>
                     <p className="font-medium text-lg">
                       {response.communication !== null
                         ? response.communication
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p>Förväntningar</p>
+                    <p className="font-medium text-lg">
+                      {response.expectationMet !== null
+                        ? response.expectationMet === true
+                          ? "Ja"
+                          : "Nej"
                         : "-"}
                     </p>
                   </div>
@@ -346,11 +348,11 @@ export default function SurveyResponsesList({
                 }}
               >
                 <p className="text-4xl">
-                  {selectedResponse.satisfaction !== null
-                    ? selectedResponse.satisfaction
+                  {selectedResponse.communication !== null
+                    ? selectedResponse.communication
                     : "-"}
                 </p>
-                <p className="opacity-70 text-sm">Nöjdhet</p>
+                <p className="opacity-70 text-sm">Kommunikation</p>
               </motion.div>
               <motion.div
                 className="bg-primary-80/30 rounded-md pt-4 pb-3"
@@ -368,15 +370,18 @@ export default function SurveyResponsesList({
                 }}
               >
                 <p className="text-4xl">
-                  {selectedResponse.communication !== null
-                    ? selectedResponse.communication
+                  {selectedResponse.expectationMet !== null
+                    ? selectedResponse.expectationMet === true
+                      ? "Ja"
+                      : "Nej"
                     : "-"}
                 </p>
-                <p className="opacity-70 text-sm">Kommunikation</p>
+                <p className="opacity-70 text-sm">Förväntningar</p>
               </motion.div>
             </motion.div>
 
             <motion.div
+              className="space-y-2"
               variants={{
                 hidden: { opacity: 0, y: 10 },
                 visible: {
@@ -390,13 +395,14 @@ export default function SurveyResponsesList({
                 },
               }}
             >
-              <h3 className="font-medium mb-1">Vad vi gjorde bra:</h3>
-              <p className="bg-primary-80/30 p-4 rounded-sm">
-                {selectedResponse.whatWeDidWell || "Ingen feedback"}
+              <h3 className="font-medium">Potentiella kunder</h3>
+              <p className="bg-primary-80/30 p-3 rounded-md">
+                {selectedResponse.potentialReferral || "Ingen information"}
               </p>
             </motion.div>
 
             <motion.div
+              className="space-y-2"
               variants={{
                 hidden: { opacity: 0, y: 10 },
                 visible: {
@@ -410,9 +416,9 @@ export default function SurveyResponsesList({
                 },
               }}
             >
-              <h3 className="font-medium mb-1">Vad vi kan förbättra:</h3>
-              <p className="bg-primary-80/30 p-4 rounded-sm">
-                {selectedResponse.whatWeCanImprove || "Ingen feedback"}
+              <h3 className="font-medium">Feedback</h3>
+              <p className="bg-primary-80/30 p-3 rounded-md">
+                {selectedResponse.feedback || "Ingen feedback"}
               </p>
             </motion.div>
 

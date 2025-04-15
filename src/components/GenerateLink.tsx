@@ -48,14 +48,15 @@ export default function GenerateLink() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate link");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate link");
       }
 
       const data = await response.json();
       setGeneratedLink(data.surveyUrl);
-    } catch (err) {
-      setError("An error occurred while generating the link");
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message || "An error occurred while generating the link");
+      console.error("Error creating survey link:", err);
     } finally {
       setIsLoading(false);
     }
