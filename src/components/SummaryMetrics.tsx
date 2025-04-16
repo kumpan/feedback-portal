@@ -55,7 +55,7 @@ export function SummaryMetrics({ surveyData }: SummaryMetricsProps) {
       <Card>
         <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>NPS</CardTitle>
-          <p className="text-sm opacity-70">Net Promoter Score.</p>
+          <p className="text-sm opacity-70">Net Promoter Score</p>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="text-5xl md:text-6xl proportional-nums font-medium">
@@ -68,7 +68,7 @@ export function SummaryMetrics({ surveyData }: SummaryMetricsProps) {
         <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>Förväntningar</CardTitle>
           <p className="text-sm opacity-70">
-            Andel som levererat över förväntan.
+            Andel som levererat över förväntan
           </p>
         </CardHeader>
         <CardContent className="pt-0">
@@ -81,7 +81,7 @@ export function SummaryMetrics({ surveyData }: SummaryMetricsProps) {
       <Card>
         <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>Kommunikation</CardTitle>
-          <p className="text-sm opacity-70">Hur bra vi kommunicerar, 1-5.</p>
+          <p className="text-sm opacity-70">Hur bra vi kommunicerar, 1-5</p>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="text-5xl md:text-6xl proportional-nums font-medium">
