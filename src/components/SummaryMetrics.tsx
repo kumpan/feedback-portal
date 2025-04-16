@@ -46,15 +46,16 @@ function AnimateNumber({
 }
 
 export function SummaryMetrics({ surveyData }: SummaryMetricsProps) {
-  const avgSatisfaction = surveyData.avgSatisfaction;
   const avgCommunication = surveyData.avgCommunication;
   const nps = surveyData.timeframeNps;
+  const expectationsMetPercentage = surveyData.expectationsMetPercentage;
 
   return (
     <div className="grid gap-2 md:gap-4 grid-cols-1 md:grid-cols-3">
       <Card>
         <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>NPS</CardTitle>
+          <p className="text-sm opacity-70">Net Promoter Score.</p>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="text-5xl md:text-6xl proportional-nums font-medium">
@@ -65,17 +66,22 @@ export function SummaryMetrics({ surveyData }: SummaryMetricsProps) {
       </Card>
       <Card>
         <CardHeader className="border-b border-border/20 mb-4">
-          <CardTitle>Nöjdhet</CardTitle>
+          <CardTitle>Förväntningar</CardTitle>
+          <p className="text-sm opacity-70">
+            Andel som levererat över förväntan.
+          </p>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="text-5xl md:text-6xl proportional-nums font-medium">
-            <AnimateNumber value={avgSatisfaction} decimals={1} />
+            <AnimateNumber value={expectationsMetPercentage} decimals={1} />
+            <span>%</span>
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="border-b border-border/20 mb-4">
           <CardTitle>Kommunikation</CardTitle>
+          <p className="text-sm opacity-70">Hur bra vi kommunicerar, 1-5.</p>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="text-5xl md:text-6xl proportional-nums font-medium">

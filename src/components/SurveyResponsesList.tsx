@@ -6,15 +6,16 @@ import { Modal } from "@/components/ui/modal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { deleteSurveyLink } from "@/app/actions/surveyActions";
 
 interface SurveyResponsesListProps {
   responses: Array<{
     id: number;
     nps: number | null;
     communication: number | null;
-    expectationMet: string | null;
+    expectationMet: boolean | null;
     potentialReferral: string | null;
     feedback: string | null;
     completed: boolean;
@@ -86,8 +87,16 @@ export default function SurveyResponsesList({
     (typeof responses)[0] | null
   >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [surveyUrl, setSurveyUrl] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [visibleResponses, setVisibleResponses] =
+    useState<typeof responses>(responses);
+
+  useEffect(() => {
+    setVisibleResponses(responses);
+  }, [responses]);
 
   useEffect(() => {
     if (selectedResponse && selectedResponse.uniqueCode) {
@@ -117,13 +126,46 @@ export default function SurveyResponsesList({
     setIsCopied(false);
   };
 
+  const openConfirmModal = () => {
+    setIsModalOpen(false); // Close the first modal
+    setIsConfirmModalOpen(true);
+  };
+
+  const closeConfirmModal = () => {
+    setIsConfirmModalOpen(false);
+  };
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(surveyUrl);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  if (responses.length === 0) {
+  const handleDeleteSurvey = async () => {
+    if (!selectedResponse || !selectedResponse.uniqueCode) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await deleteSurveyLink(selectedResponse.uniqueCode);
+
+      if (result.success) {
+        setVisibleResponses((prevResponses) =>
+          prevResponses.filter(
+            (response) => response.id !== selectedResponse.id
+          )
+        );
+        closeConfirmModal();
+      } else {
+        alert(result.message);
+      }
+    } catch {
+      alert("Failed to delete the survey.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (visibleResponses.length === 0) {
     return (
       <Card className="p-6">
         <p className="text-center text-gray-500">Ingen feedback än😭</p>
@@ -140,7 +182,7 @@ export default function SurveyResponsesList({
         animate="visible"
       >
         <AnimatePresence>
-          {responses.map((response, index) => (
+          {visibleResponses.map((response, index) => (
             <motion.div
               key={response.id}
               className={`cursor-pointer rounded-xl transition-colors ${
@@ -239,6 +281,17 @@ export default function SurveyResponsesList({
               ? `, ${selectedResponse.companyName}`
               : ""
           }`}
+          actions={
+            !selectedResponse.completed ? (
+              <button
+                onClick={openConfirmModal}
+                className="rounded-lg p-4 hover:bg-primary-85 cursor-pointer transition-colors"
+                aria-label="Delete"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+            ) : null
+          }
         >
           <motion.div
             className="space-y-4"
@@ -313,7 +366,7 @@ export default function SurveyResponsesList({
               }}
             >
               <motion.div
-                className="bg-primary-80/30 rounded-md pt-4 pb-3"
+                className="bg-primary-80/30 flex flex-col justify-center rounded-md pt-4 pb-3"
                 variants={{
                   hidden: { opacity: 0, scale: 0.9 },
                   visible: {
@@ -330,10 +383,10 @@ export default function SurveyResponsesList({
                 <p className="text-4xl">
                   {selectedResponse.nps !== null ? selectedResponse.nps : "-"}
                 </p>
-                <p className="opacity-70 text-sm">NPS</p>
+                <p className="opacity-70 text-sm hidden md:block">NPS</p>
               </motion.div>
               <motion.div
-                className="bg-primary-80/30 rounded-md pt-4 pb-3"
+                className="bg-primary-80/30 rounded-md py-4 md:pt-4 md:pb-3"
                 variants={{
                   hidden: { opacity: 0, scale: 0.9 },
                   visible: {
@@ -352,7 +405,9 @@ export default function SurveyResponsesList({
                     ? selectedResponse.communication
                     : "-"}
                 </p>
-                <p className="opacity-70 text-sm">Kommunikation</p>
+                <p className="opacity-70 text-sm hidden md:block">
+                  Kommunikation
+                </p>
               </motion.div>
               <motion.div
                 className="bg-primary-80/30 rounded-md pt-4 pb-3"
@@ -376,12 +431,14 @@ export default function SurveyResponsesList({
                       : "Nej"
                     : "-"}
                 </p>
-                <p className="opacity-70 text-sm">Förväntningar</p>
+                <p className="opacity-70 text-sm hidden md:block">
+                  Förväntningar
+                </p>
               </motion.div>
             </motion.div>
 
             <motion.div
-              className="space-y-2"
+              className="space-y-1"
               variants={{
                 hidden: { opacity: 0, y: 10 },
                 visible: {
@@ -402,7 +459,7 @@ export default function SurveyResponsesList({
             </motion.div>
 
             <motion.div
-              className="space-y-2"
+              className="space-y-1"
               variants={{
                 hidden: { opacity: 0, y: 10 },
                 visible: {
@@ -463,6 +520,43 @@ export default function SurveyResponsesList({
               )}
             </div>
           </motion.div>
+        </Modal>
+      )}
+
+      {/* Confirmation Modal */}
+      {selectedResponse && (
+        <Modal
+          isOpen={isConfirmModalOpen}
+          onClose={closeConfirmModal}
+          title="Ta bort enkät?"
+        >
+          <div>
+            <p className="md:text-lg">
+              Är du säker på att du vill ta bort denna enkät? Detta kommer att
+              permanent ta bort enkäten och kan inte ångras.
+            </p>
+
+            <div className="flex flex-col-reverse md:flex-row gap-2 mt-8">
+              <Button
+                size="lg"
+                variant="outline"
+                className="md:flex-1"
+                onClick={closeConfirmModal}
+                disabled={isDeleting}
+              >
+                Nej, rädda enkäten
+              </Button>
+              <Button
+                size="lg"
+                variant="destructive"
+                className="md:flex-1"
+                onClick={handleDeleteSurvey}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Tar bort..." : "Ja, ta bort"}
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>

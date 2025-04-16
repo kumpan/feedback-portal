@@ -27,7 +27,17 @@ export async function POST(request: NextRequest) {
 
     const uniqueCode = generateUniqueCode();
 
-    const createData: any = {
+    const createData: {
+      uniqueCode: string;
+      clientName: string;
+      companyName: string;
+      response: {
+        create: {
+          completed: boolean;
+        };
+      };
+      createdById?: string;
+    } = {
       uniqueCode,
       clientName,
       companyName,
@@ -65,12 +75,13 @@ export async function POST(request: NextRequest) {
     const surveyUrl = `${request.nextUrl.origin}/survey/${surveyLink.uniqueCode}`;
 
     return NextResponse.json({ surveyLink, surveyUrl });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating survey link:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       { 
         error: "Failed to create survey link", 
-        details: error.message || "Unknown error" 
+        details: errorMessage
       },
       { status: 500 }
     );

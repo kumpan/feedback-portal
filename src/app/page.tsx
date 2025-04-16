@@ -6,16 +6,35 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Suspense } from "react";
 import { ChevronLeft, ArrowRight } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import Image from "next/image";
 
-export function HomeContent() {
-  const router = useRouter();
+interface SurveyDetails {
+  id: string;
+  uniqueCode: string;
+  clientName?: string;
+  companyName?: string;
+  createdAt: string;
+  createdBy?: {
+    name?: string;
+    image?: string;
+  };
+  response?: {
+    completed: boolean;
+  };
+}
+
+function HomeContent() {
   const searchParams = useSearchParams();
   const surveyCode = searchParams.get("code");
 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [surveyDetails, setSurveyDetails] = useState<any>(null);
+  const [surveyDetails, setSurveyDetails] = useState<SurveyDetails | null>(
+    null
+  );
   const [submitted, setSubmitted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [inputData, setInputData] = useState({
@@ -47,10 +66,6 @@ export function HomeContent() {
     if (questionIndex > 0) {
       setQuestionIndex(questionIndex - 1);
     }
-  };
-
-  const validateCurrentQuestion = () => {
-    return true;
   };
 
   useEffect(() => {
@@ -134,12 +149,13 @@ export function HomeContent() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          linkId: surveyDetails.id,
+          linkId: surveyDetails?.id,
           nps: parseInt(inputData.nps),
           communication: parseInt(inputData.communication),
           expectationMet: inputData.expectationMet,
           potentialReferral: inputData.potentialReferral,
           feedback: inputData.feedback,
+          anonymous: !surveyDetails,
         }),
       });
 
@@ -147,12 +163,7 @@ export function HomeContent() {
         throw new Error("Failed to submit survey");
       }
 
-      // Set submitted state to true before redirecting
       setSubmitted(true);
-      // Use setTimeout to ensure state is updated before redirect
-      setTimeout(() => {
-        router.push("/tack");
-      }, 100);
     } catch (error) {
       console.error("Error submitting survey:", error);
       setErrorMessage(
@@ -163,6 +174,8 @@ export function HomeContent() {
     }
   };
 
+  const { data: session } = useSession();
+
   if (loading) {
     return <></>;
   }
@@ -170,9 +183,11 @@ export function HomeContent() {
   if (errorMessage && errorMessage.includes("invalid or has expired")) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
-        <div className="w-full max-w-md p-6 md:p-8">
-          <h1 className="text-2xl font-medium mb-4">Ogiltig länk</h1>
-          <p className="opacity-70">
+        <div className="w-full max-w-md flex items-center text-center flex-col">
+          <h1 className="text-3xl md:text-4xl font-medium mb-2">
+            Ogiltig länk
+          </h1>
+          <p className="opacity-70 md:text-lg">
             Denna länk är inte giltig eller har upphört. Kontakta den som
             skickade länken för att få en ny.
           </p>
@@ -181,16 +196,11 @@ export function HomeContent() {
     );
   }
 
-  if (!surveyDetails) {
-    router.push("/dashboard");
-    return null;
-  }
-
   if (submitted) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
-        <div className="w-full max-w-md p-6 md:p-8">
-          <h1 className="text-2xl font-medium mb-4">Tack för din feedback!</h1>
+        <div className="w-full max-w-md p-6 md:p-8 text-center items-center">
+          <h1 className="text-3xl font-medium mb-1">Tack för din feedback!</h1>
           <p className="opacity-70">
             Dina svar har skickats in. Vi uppskattar att du tog dig tid att
             svara på vår enkät.
@@ -202,6 +212,30 @@ export function HomeContent() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
+      {session?.user && (
+        <div className="fixed top-0 left-0 right-0 border-b">
+          <div className="max-w-5xl mx-auto px-4 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {session.user.image && (
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name || "User"}
+                  width={40}
+                  height={40}
+                  className="rounded-lg"
+                />
+              )}
+              <span className="text-lg font-medium">{session.user.name}</span>
+            </div>
+            <Button asChild className="gap-2">
+              <Link href="/dashboard">
+                Dashboard
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
       <section className="w-full max-w-xl">
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl mb-4">
@@ -232,10 +266,20 @@ export function HomeContent() {
               👋
             </motion.span>
           </h1>
-          <p className="text-lg opacity-70">
-            På Kumpan strävar vi alltid efter att bli bättre, så dela gärna med
-            dig av din upplevelse när du nyligen arbetade tillsammans med{" "}
-            {extractFirstName(surveyDetails?.createdBy?.name)}.
+          <p className="text-lg leading-snug opacity-70">
+            {surveyDetails ? (
+              <>
+                Du arbetade nyligen med{" "}
+                {extractFirstName(surveyDetails?.createdBy?.name)} på Kumpan,
+                och vi värdesätter din feedback högt. Hur upplevde du ert
+                samarbetet tillsammans?
+              </>
+            ) : (
+              <>
+                Vi på Kumpan värdesätter din feedback högt. Hur upplevde du vårt
+                samarbete tillsammans?
+              </>
+            )}
           </p>
         </div>
 
@@ -253,24 +297,21 @@ export function HomeContent() {
         </div>
 
         <form onSubmit={handleSubmit} className="w-full">
-          <motion.div
-            className="relative overflow-hidden"
-            initial={false}
-            animate={{ height: "auto" }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-          >
-            <AnimatePresence mode="wait" initial={false}>
+          <div className="relative min-h-56 md:min-h-44">
+            <AnimatePresence mode="wait">
               {questionIndex === 0 && (
                 <motion.div
                   key="nps-question"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="space-y-4 w-full"
-                  layout
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-2 pb-4"
                 >
-                  <h2 className="text-xl mb-4 md:text-2xl">
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
                     Hur troligt är det att du skulle rekommendera Kumpan till en
                     vän eller kollega?
                   </h2>
@@ -337,14 +378,19 @@ export function HomeContent() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="space-y-4 w-full"
-                  layout
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-2 pb-4"
                 >
-                  <h2 className="text-xl mb-4 md:text-2xl">
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
                     Hur skulle du bedöma{" "}
-                    {extractFirstName(surveyDetails?.createdBy?.name)}{" "}
-                    kommunikation genom projektet?
+                    {surveyDetails
+                      ? `${extractFirstName(
+                          surveyDetails?.createdBy?.name
+                        )}s kommunikation genom projektet?`
+                      : "vår kommunikation genom projektet?"}
                   </h2>
 
                   <motion.div
@@ -363,8 +409,8 @@ export function HomeContent() {
                   >
                     {Array.from({ length: 5 }, (_, i) => (
                       <motion.div
-                        key={i + 1}
                         className="w-full"
+                        key={i + 1}
                         variants={{
                           hidden: { opacity: 0, y: 10 },
                           visible: {
@@ -407,18 +453,23 @@ export function HomeContent() {
 
               {questionIndex === 2 && (
                 <motion.div
-                  key="expectations-question"
+                  key="expectation-question"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="space-y-4 w-full"
-                  layout
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-4 pb-4"
                 >
-                  <h2 className="text-xl mb-4 md:text-2xl">
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
                     Levererade{" "}
-                    {extractFirstName(surveyDetails?.createdBy?.name)} som
-                    förväntat?
+                    {surveyDetails
+                      ? `${extractFirstName(
+                          surveyDetails?.createdBy?.name
+                        )} som förväntat?`
+                      : "vi som förväntat?"}
                   </h2>
 
                   <motion.div
@@ -506,11 +557,13 @@ export function HomeContent() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="space-y-4 w-full"
-                  layout
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-4 pb-4"
                 >
-                  <h2 className="text-xl mb-4 md:text-2xl">
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
                     Vilket annat bolag tror du kan ta nytta av våra tjänster?
                   </h2>
                   <Textarea
@@ -530,13 +583,17 @@ export function HomeContent() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="space-y-4 w-full"
-                  layout
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-4 pb-4"
                 >
-                  <h2 className="text-xl mb-4 md:text-2xl">
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
                     Vad fungerade bra och vad kan{" "}
-                    {extractFirstName(surveyDetails?.createdBy?.name)}{" "}
+                    {surveyDetails
+                      ? `${extractFirstName(surveyDetails?.createdBy?.name)}`
+                      : "Kumpan"}{" "}
                     förbättra?
                   </h2>
                   <Textarea
@@ -548,9 +605,8 @@ export function HomeContent() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
-
-          <div className="flex justify-between items-center pt-4">
+          </div>
+          <div className="flex justify-between items-center pt-4 fixed bottom-4 left-4 right-4 md:static">
             <Button
               type="button"
               size="lg"
@@ -585,7 +641,7 @@ export function HomeContent() {
   );
 }
 
-export default function Home() {
+export default function Page() {
   return (
     <Suspense fallback={<></>}>
       <HomeContent />

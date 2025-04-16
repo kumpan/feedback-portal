@@ -54,8 +54,12 @@ export default function GenerateLink() {
 
       const data = await response.json();
       setGeneratedLink(data.surveyUrl);
-    } catch (err: any) {
-      setError(err.message || "An error occurred while generating the link");
+    } catch (err: unknown) {
+      setError(
+        typeof err === "object" && err !== null && "message" in err
+          ? (err.message as string)
+          : "An error occurred while generating the link"
+      );
       console.error("Error creating survey link:", err);
     } finally {
       setIsLoading(false);
@@ -89,9 +93,10 @@ export default function GenerateLink() {
         className="max-w-lg"
       >
         <div className="space-y-4">
-          <p className="opacity-70">
-            Här kan du generera en länk som du kan skicka till kunden, så kan vi
-            se vem som svarat på frågorna.
+          <p className="opacity-70 mb-8">
+            Skicka ut enkäten vid leverans av projektet. Vid långvariga
+            kundrelationer kan du överväga att skicka den under en lugnare
+            period, exempelvis sommaren eller vintern.
           </p>
 
           <div className="space-y-2">
@@ -105,7 +110,7 @@ export default function GenerateLink() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="companyName">Företagsnamn</Label>
+            <Label htmlFor="companyName">Kundens företagsnamn</Label>
             <Input
               id="companyName"
               value={companyName}
@@ -152,4 +157,4 @@ export default function GenerateLink() {
       </Modal>
     </>
   );
-};
+}

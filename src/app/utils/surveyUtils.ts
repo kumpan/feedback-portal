@@ -67,21 +67,6 @@ export function processSurveyData(responses: SurveyResponse[]) {
   const latestNps =
     latestResponse && latestResponse.nps ? latestResponse.nps : 0;
 
-  const validSatisfactionResponses = responses.filter(
-    (r) => r.communication !== null
-  );
-  const avgSatisfaction =
-    validSatisfactionResponses.length > 0
-      ? parseFloat(
-          (
-            validSatisfactionResponses.reduce(
-              (sum, r) => sum + (r.communication as number),
-              0
-            ) / validSatisfactionResponses.length
-          ).toFixed(2)
-        )
-      : 0;
-
   const validCommunicationResponses = responses.filter(
     (r) => r.communication !== null
   );
@@ -94,6 +79,20 @@ export function processSurveyData(responses: SurveyResponse[]) {
               0
             ) / validCommunicationResponses.length
           ).toFixed(2)
+        )
+      : 0;
+
+  // Calculate percentage of expectations met
+  const responsesWithExpectations = responses.filter(
+    (r) => r.expectationMet !== null
+  );
+  const expectationsMetCount = responsesWithExpectations.filter(
+    (r) => r.expectationMet === true
+  ).length;
+  const expectationsMetPercentage =
+    responsesWithExpectations.length > 0
+      ? parseFloat(
+          ((expectationsMetCount / responsesWithExpectations.length) * 100).toFixed(1)
         )
       : 0;
 
@@ -140,8 +139,8 @@ export function processSurveyData(responses: SurveyResponse[]) {
   return {
     timeframeNps,
     latestNps,
-    avgSatisfaction,
     avgCommunication,
+    expectationsMetPercentage,
     trendData,
     totalResponses,
   };

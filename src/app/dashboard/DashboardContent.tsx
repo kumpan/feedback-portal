@@ -40,8 +40,8 @@ export default function DashboardContent({
   const [surveyData, setSurveyData] = useState<SurveyData>({
     timeframeNps: 0,
     latestNps: 0,
-    avgSatisfaction: 0,
     avgCommunication: 0,
+    expectationsMetPercentage: 0,
     trendData: [],
     totalResponses: 0,
     timeframeName: "",

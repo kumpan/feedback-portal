@@ -20,7 +20,6 @@ import { getTimeFrameStartDate } from "@/app/utils/surveyUtils";
 type NPSTrendData = {
   date: string;
   nps: number;
-  satisfaction: number;
   communication: number;
 };
 
@@ -55,7 +54,6 @@ interface TooltipProps {
     payload: {
       formattedDate: string;
       nps: number;
-      satisfaction: number;
       communication: number;
       date: string;
     };

@@ -72,14 +72,6 @@ const RetentionInfoModal = ({
         kvar vid årets slut.
       </p>
 
-      <h4 className="text-lg font-medium mt-4">Formel</h4>
-      <div className="bg-primary-90 p-4 rounded-md">
-        <p className="font-mono">
-          Retention = (Antal anställda från årets början som är kvar vid årets
-          slut / Antal anställda vid årets början) × 100
-        </p>
-      </div>
-
       <h4 className="text-lg font-medium mt-4">Exempel</h4>
       <div className="bg-primary-90 p-4 rounded-md">
         <p>
@@ -113,18 +105,6 @@ const TurnoverInfoModal = ({
         genomsnittliga antalet anställda.
       </p>
 
-      <h4 className="text-lg font-medium mt-4">Formel</h4>
-      <div className="bg-primary-90 p-4 rounded-md">
-        <p className="font-mono">
-          Turnover = (Antal anställda som lämnat under året / Genomsnittligt
-          antal anställda) × 100
-        </p>
-        <p className="mt-2">
-          Där genomsnittligt antal anställda = (Antal anställda vid årets början
-          + Antal anställda vid årets slut) / 2
-        </p>
-      </div>
-
       <h4 className="text-lg font-medium mt-4">Exempel</h4>
       <div className="bg-primary-90 p-4 rounded-md">
         <p>
@@ -144,15 +124,14 @@ const TurnoverInfoModal = ({
         förhållande till den genomsnittliga arbetsstyrkan.
       </p>
       <p className="mt-2">
-        Retention är ett &quot;positivt&quot; mått (högre är bättre), medan Turnover är ett &quot;negativt&quot; mått (lägre är bättre).
+        Retention är ett &quot;positivt&quot; mått (högre är bättre), medan
+        Turnover är ett &quot;negativt&quot; mått (lägre är bättre).
       </p>
     </div>
   </Modal>
 );
 
-export function EmployeeMetrics({
-  retentionData,
-}: EmployeeMetricsProps) {
+export function EmployeeMetrics({ retentionData }: EmployeeMetricsProps) {
   const [isRetentionModalOpen, setIsRetentionModalOpen] = useState(false);
   const [isTurnoverModalOpen, setIsTurnoverModalOpen] = useState(false);
 
