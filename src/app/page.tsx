@@ -50,6 +50,28 @@ function HomeContent() {
     return fullName.split(" ")[0];
   };
 
+  const getQuestionType = (index: number, npsScore: string) => {
+    const nps = npsScore ? parseInt(npsScore) : 0;
+    const isHighNps = nps >= 7;
+    
+    // For high NPS (≥7): NPS → Referral → Communication → Expectations → Feedback
+    // For low NPS (<7): NPS → Communication → Expectations → Feedback
+    if (index === 0) return "nps";
+    
+    if (isHighNps) {
+      if (index === 1) return "referral";
+      if (index === 2) return "communication";
+      if (index === 3) return "expectations";
+      if (index === 4) return "feedback";
+    } else {
+      if (index === 1) return "communication";
+      if (index === 2) return "expectations";
+      if (index === 3) return "feedback";
+    }
+    
+    return "";
+  };
+
   const calculateTotalQuestions = () => {
     // For NPS >= 7: NPS → Referral → Communication → Expectations → Feedback = 5 questions
     // For NPS < 7: NPS → Communication → Expectations → Feedback = 4 questions
@@ -288,11 +310,15 @@ function HomeContent() {
         <div className="mb-10">
           <div className="h-2 bg-primary-80/30 rounded-full w-full">
             <motion.div
-              className="h-2 bg-primary rounded-full transition-all"
+              className="h-2 bg-primary rounded-full"
               initial={{ width: 0 }}
               animate={{
                 width: `${((questionIndex + 1) / totalQuestions) * 100}%`,
-                transition: { duration: 0.3 },
+                transition: {
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                },
               }}
             ></motion.div>
           </div>
@@ -301,7 +327,7 @@ function HomeContent() {
         <form onSubmit={handleSubmit} className="w-full">
           <div className="relative min-h-56 md:min-h-44">
             <AnimatePresence mode="wait">
-              {questionIndex === 0 && (
+              {getQuestionType(questionIndex, inputData.nps) === "nps" && (
                 <motion.div
                   key="nps-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -374,7 +400,7 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 1 && parseInt(inputData.nps) >= 7 && (
+              {getQuestionType(questionIndex, inputData.nps) === "referral" && (
                 <motion.div
                   key="referral-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -398,7 +424,7 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 1 && parseInt(inputData.nps) < 7 && (
+              {getQuestionType(questionIndex, inputData.nps) === "communication" && (
                 <motion.div
                   key="communication-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -450,14 +476,14 @@ function HomeContent() {
                         }}
                       >
                         <label
-                          htmlFor={`communication-${i + 1}`}
+                          htmlFor={`com-${i + 1}`}
                           className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
                         >
                           <input
                             type="radio"
                             name="communication"
                             value={i + 1}
-                            id={`communication-${i + 1}`}
+                            id={`com-${i + 1}`}
                             className="sr-only"
                             checked={
                               inputData.communication === (i + 1).toString()
@@ -477,87 +503,7 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 2 && parseInt(inputData.nps) >= 7 && (
-                <motion.div
-                  key="communication-question"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{
-                    opacity: { duration: 0.3 },
-                    y: { duration: 0.3 },
-                  }}
-                  className="space-y-2 pb-4"
-                >
-                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
-                    Hur skulle du bedöma{" "}
-                    {surveyDetails
-                      ? `${extractFirstName(
-                          surveyDetails?.createdBy?.name
-                        )}s kommunikation genom projektet?`
-                      : "vår kommunikation genom projektet?"}
-                  </h2>
-
-                  <motion.div
-                    className="flex gap-1"
-                    variants={{
-                      hidden: { opacity: 0 },
-                      visible: {
-                        opacity: 1,
-                        transition: {
-                          staggerChildren: 0.05,
-                        },
-                      },
-                    }}
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <motion.div
-                        className="w-full"
-                        key={i + 1}
-                        variants={{
-                          hidden: { opacity: 0, y: 10 },
-                          visible: {
-                            opacity: 1,
-                            y: 0,
-                            transition: {
-                              duration: 0.3,
-                              ease: "easeOut",
-                            },
-                          },
-                        }}
-                      >
-                        <label
-                          htmlFor={`communication-${i + 1}`}
-                          className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
-                        >
-                          <input
-                            type="radio"
-                            name="communication"
-                            value={i + 1}
-                            id={`communication-${i + 1}`}
-                            className="sr-only"
-                            checked={
-                              inputData.communication === (i + 1).toString()
-                            }
-                            onChange={handleInputChange}
-                          />
-                          <p className="text-lg md:text-xl">{i + 1}</p>
-                        </label>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-
-                  <div className="flex justify-between w-full opacity-70">
-                    <p className="text-sm">Dålig</p>
-                    <p className="text-sm">Utmärkt</p>
-                  </div>
-                </motion.div>
-              )}
-
-              {((questionIndex === 2 && parseInt(inputData.nps) < 7) ||
-                (questionIndex === 3 && parseInt(inputData.nps) >= 7)) && (
+              {getQuestionType(questionIndex, inputData.nps) === "expectations" && (
                 <motion.div
                   key="expectation-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -657,8 +603,7 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {((questionIndex === 3 && parseInt(inputData.nps) < 7) ||
-                (questionIndex === 4 && parseInt(inputData.nps) >= 7)) && (
+              {getQuestionType(questionIndex, inputData.nps) === "feedback" && (
                 <motion.div
                   key="feedback-question"
                   initial={{ opacity: 0, y: 20 }}
