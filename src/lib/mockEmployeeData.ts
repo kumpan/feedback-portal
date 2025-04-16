@@ -90,7 +90,6 @@ export function generateMockEmployees(count: number = 10): BaseEmployee[] {
     }
 
     if (i % 3 === 0) {
-      // Hailey HR format
       const haileyEmployee: HaileyEmployee = {
         employeeId: `emp-${i}-${Math.random().toString(36).substring(2, 9)}`,
         firstName: `FirstName${i}`,
@@ -123,7 +122,6 @@ export function generateMockEmployees(count: number = 10): BaseEmployee[] {
       };
       employees.push(haileyEmployee);
     } else if (i % 3 === 1) {
-      // Standard format
       const standardEmployee: StandardEmployee = {
         id: `emp-${i}-${Math.random().toString(36).substring(2, 9)}`,
         firstName: `FirstName${i}`,
@@ -135,7 +133,6 @@ export function generateMockEmployees(count: number = 10): BaseEmployee[] {
       };
       employees.push(standardEmployee);
     } else {
-      // Legacy format
       const legacyEmployee: LegacyEmployee = {
         id: `emp-${i}-${Math.random().toString(36).substring(2, 9)}`,
         first_name: `FirstName${i}`,

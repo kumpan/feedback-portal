@@ -48,13 +48,11 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Only set createdById if we have a valid user ID
     if (session?.user?.id) {
-      // Check if the user exists in the database
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
       });
-      
+
       if (user) {
         createData.createdById = session.user.id;
       } else {
@@ -77,11 +75,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ surveyLink, surveyUrl });
   } catch (error: unknown) {
     console.error("Error creating survey link:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { 
-        error: "Failed to create survey link", 
-        details: errorMessage
+      {
+        error: "Failed to create survey link",
+        details: errorMessage,
       },
       { status: 500 }
     );
