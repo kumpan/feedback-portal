@@ -51,6 +51,8 @@ function HomeContent() {
   };
 
   const calculateTotalQuestions = () => {
+    // For NPS >= 7: NPS → Referral → Communication → Expectations → Feedback = 5 questions
+    // For NPS < 7: NPS → Communication → Expectations → Feedback = 4 questions
     return !inputData.nps ? 4 : parseInt(inputData.nps) >= 7 ? 5 : 4;
   };
 
@@ -372,7 +374,31 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 1 && (
+              {questionIndex === 1 && parseInt(inputData.nps) >= 7 && (
+                <motion.div
+                  key="referral-question"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-4 pb-4"
+                >
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
+                    Vilket annat bolag tror du kan ta nytta av våra tjänster?
+                  </h2>
+                  <Textarea
+                    name="potentialReferral"
+                    placeholder="Skriv ditt svar..."
+                    value={inputData.potentialReferral}
+                    onChange={handleInputChange}
+                  />
+                </motion.div>
+              )}
+
+              {questionIndex === 1 && parseInt(inputData.nps) < 7 && (
                 <motion.div
                   key="communication-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -424,14 +450,14 @@ function HomeContent() {
                         }}
                       >
                         <label
-                          htmlFor={`com-${i + 1}`}
+                          htmlFor={`communication-${i + 1}`}
                           className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
                         >
                           <input
                             type="radio"
                             name="communication"
                             value={i + 1}
-                            id={`com-${i + 1}`}
+                            id={`communication-${i + 1}`}
                             className="sr-only"
                             checked={
                               inputData.communication === (i + 1).toString()
@@ -451,7 +477,87 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 2 && (
+              {questionIndex === 2 && parseInt(inputData.nps) >= 7 && (
+                <motion.div
+                  key="communication-question"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-2 pb-4"
+                >
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
+                    Hur skulle du bedöma{" "}
+                    {surveyDetails
+                      ? `${extractFirstName(
+                          surveyDetails?.createdBy?.name
+                        )}s kommunikation genom projektet?`
+                      : "vår kommunikation genom projektet?"}
+                  </h2>
+
+                  <motion.div
+                    className="flex gap-1"
+                    variants={{
+                      hidden: { opacity: 0 },
+                      visible: {
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.05,
+                        },
+                      },
+                    }}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <motion.div
+                        className="w-full"
+                        key={i + 1}
+                        variants={{
+                          hidden: { opacity: 0, y: 10 },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.3,
+                              ease: "easeOut",
+                            },
+                          },
+                        }}
+                      >
+                        <label
+                          htmlFor={`communication-${i + 1}`}
+                          className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                        >
+                          <input
+                            type="radio"
+                            name="communication"
+                            value={i + 1}
+                            id={`communication-${i + 1}`}
+                            className="sr-only"
+                            checked={
+                              inputData.communication === (i + 1).toString()
+                            }
+                            onChange={handleInputChange}
+                          />
+                          <p className="text-lg md:text-xl">{i + 1}</p>
+                        </label>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+
+                  <div className="flex justify-between w-full opacity-70">
+                    <p className="text-sm">Dålig</p>
+                    <p className="text-sm">Utmärkt</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {((questionIndex === 2 && parseInt(inputData.nps) < 7) ||
+                (questionIndex === 3 && parseInt(inputData.nps) >= 7)) && (
                 <motion.div
                   key="expectation-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -551,33 +657,8 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 3 && parseInt(inputData.nps) >= 7 && (
-                <motion.div
-                  key="referral-question"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{
-                    opacity: { duration: 0.3 },
-                    y: { duration: 0.3 },
-                  }}
-                  className="space-y-4 pb-4"
-                >
-                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
-                    Vilket annat bolag tror du kan ta nytta av våra tjänster?
-                  </h2>
-                  <Textarea
-                    name="potentialReferral"
-                    placeholder="Skriv ditt svar..."
-                    value={inputData.potentialReferral}
-                    onChange={handleInputChange}
-                  />
-                </motion.div>
-              )}
-
-              {((questionIndex === 4 && parseInt(inputData.nps) >= 7) ||
-                (questionIndex === 3 &&
-                  (parseInt(inputData.nps) < 7 || !inputData.nps))) && (
+              {((questionIndex === 3 && parseInt(inputData.nps) < 7) ||
+                (questionIndex === 4 && parseInt(inputData.nps) >= 7)) && (
                 <motion.div
                   key="feedback-question"
                   initial={{ opacity: 0, y: 20 }}
