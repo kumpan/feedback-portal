@@ -50,7 +50,31 @@ function HomeContent() {
     return fullName.split(" ")[0];
   };
 
+  const getQuestionType = (index: number, npsScore: string) => {
+    const nps = npsScore ? parseInt(npsScore) : 0;
+    const isHighNps = nps >= 7;
+    
+    // For high NPS (≥7): NPS → Referral → Communication → Expectations → Feedback
+    // For low NPS (<7): NPS → Communication → Expectations → Feedback
+    if (index === 0) return "nps";
+    
+    if (isHighNps) {
+      if (index === 1) return "referral";
+      if (index === 2) return "communication";
+      if (index === 3) return "expectations";
+      if (index === 4) return "feedback";
+    } else {
+      if (index === 1) return "communication";
+      if (index === 2) return "expectations";
+      if (index === 3) return "feedback";
+    }
+    
+    return "";
+  };
+
   const calculateTotalQuestions = () => {
+    // For NPS >= 7: NPS → Referral → Communication → Expectations → Feedback = 5 questions
+    // For NPS < 7: NPS → Communication → Expectations → Feedback = 4 questions
     return !inputData.nps ? 4 : parseInt(inputData.nps) >= 7 ? 5 : 4;
   };
 
@@ -286,11 +310,15 @@ function HomeContent() {
         <div className="mb-10">
           <div className="h-2 bg-primary-80/30 rounded-full w-full">
             <motion.div
-              className="h-2 bg-primary rounded-full transition-all"
+              className="h-2 bg-primary rounded-full"
               initial={{ width: 0 }}
               animate={{
                 width: `${((questionIndex + 1) / totalQuestions) * 100}%`,
-                transition: { duration: 0.3 },
+                transition: {
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                },
               }}
             ></motion.div>
           </div>
@@ -299,7 +327,7 @@ function HomeContent() {
         <form onSubmit={handleSubmit} className="w-full">
           <div className="relative min-h-56 md:min-h-44">
             <AnimatePresence mode="wait">
-              {questionIndex === 0 && (
+              {getQuestionType(questionIndex, inputData.nps) === "nps" && (
                 <motion.div
                   key="nps-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -372,7 +400,31 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 1 && (
+              {getQuestionType(questionIndex, inputData.nps) === "referral" && (
+                <motion.div
+                  key="referral-question"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    y: { duration: 0.3 },
+                  }}
+                  className="space-y-4 pb-4"
+                >
+                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
+                    Vilket annat bolag tror du kan ta nytta av våra tjänster?
+                  </h2>
+                  <Textarea
+                    name="potentialReferral"
+                    placeholder="Skriv ditt svar..."
+                    value={inputData.potentialReferral}
+                    onChange={handleInputChange}
+                  />
+                </motion.div>
+              )}
+
+              {getQuestionType(questionIndex, inputData.nps) === "communication" && (
                 <motion.div
                   key="communication-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -451,7 +503,7 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 2 && (
+              {getQuestionType(questionIndex, inputData.nps) === "expectations" && (
                 <motion.div
                   key="expectation-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -551,33 +603,7 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {questionIndex === 3 && parseInt(inputData.nps) >= 7 && (
-                <motion.div
-                  key="referral-question"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{
-                    opacity: { duration: 0.3 },
-                    y: { duration: 0.3 },
-                  }}
-                  className="space-y-4 pb-4"
-                >
-                  <h2 className="text-xl mb-4 leading-tight md:text-2xl">
-                    Vilket annat bolag tror du kan ta nytta av våra tjänster?
-                  </h2>
-                  <Textarea
-                    name="potentialReferral"
-                    placeholder="Skriv ditt svar..."
-                    value={inputData.potentialReferral}
-                    onChange={handleInputChange}
-                  />
-                </motion.div>
-              )}
-
-              {((questionIndex === 4 && parseInt(inputData.nps) >= 7) ||
-                (questionIndex === 3 &&
-                  (parseInt(inputData.nps) < 7 || !inputData.nps))) && (
+              {getQuestionType(questionIndex, inputData.nps) === "feedback" && (
                 <motion.div
                   key="feedback-question"
                   initial={{ opacity: 0, y: 20 }}
