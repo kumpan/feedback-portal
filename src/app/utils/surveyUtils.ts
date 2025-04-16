@@ -82,7 +82,6 @@ export function processSurveyData(responses: SurveyResponse[]) {
         )
       : 0;
 
-  // Calculate percentage of expectations met
   const responsesWithExpectations = responses.filter(
     (r) => r.expectationMet !== null
   );
@@ -92,7 +91,10 @@ export function processSurveyData(responses: SurveyResponse[]) {
   const expectationsMetPercentage =
     responsesWithExpectations.length > 0
       ? parseFloat(
-          ((expectationsMetCount / responsesWithExpectations.length) * 100).toFixed(1)
+          (
+            (expectationsMetCount / responsesWithExpectations.length) *
+            100
+          ).toFixed(1)
         )
       : 0;
 

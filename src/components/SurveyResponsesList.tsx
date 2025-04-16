@@ -127,7 +127,7 @@ export default function SurveyResponsesList({
   };
 
   const openConfirmModal = () => {
-    setIsModalOpen(false); // Close the first modal
+    setIsModalOpen(false);
     setIsConfirmModalOpen(true);
   };
 

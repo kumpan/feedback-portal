@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
   try {
     let dateFilter = {};
 
-    // Set date filter based on timeframe
     if (timeframe !== "all") {
       const days = parseInt(timeframe.replace("d", ""));
       const startDate = new Date();
