@@ -8,37 +8,39 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const forceFullSync = body.forceFullSync || false;
     const useMock = body.useMock || false;
-    
-    console.log(`Sync request received: forceFullSync=${forceFullSync}, useMock=${useMock}`);
-    
+
+    console.log(
+      `Sync request received: forceFullSync=${forceFullSync}, useMock=${useMock}`
+    );
+
     if (useMock) {
       console.log("Using mock data for testing");
-      // Clear existing employee data if requested
+
       if (forceFullSync) {
         await prisma.employee.deleteMany({
-          where: {} // Empty where clause to match all records
+          where: {},
         });
         console.log("Cleared all existing employee data");
       }
-      
-      // Create a mock API instance
+
       const api = new HaileyHRApi("test-api-key", true);
       const employees = await api.getEmployees();
       console.log(`Fetched ${employees.length} mock employees`);
-      
+
       let recordsAdded = 0;
       let recordsUpdated = 0;
-      
-      // Process each employee
+
       for (const employee of employees) {
         const transformedEmployee = HaileyHRApi.transformEmployeeData(employee);
-        
+
         const existingEmployee = await prisma.employee.findUnique({
           where: { employeeId: transformedEmployee.employeeId },
         });
-        
+
         if (existingEmployee) {
-          console.log(`Updating employee ${transformedEmployee.employeeId} (${transformedEmployee.firstName} ${transformedEmployee.lastName})`);
+          console.log(
+            `Updating employee ${transformedEmployee.employeeId} (${transformedEmployee.firstName} ${transformedEmployee.lastName})`
+          );
           await prisma.employee.update({
             where: { id: existingEmployee.id },
             data: {
@@ -52,7 +54,9 @@ export async function POST(request: NextRequest) {
           });
           recordsUpdated++;
         } else {
-          console.log(`Creating new employee ${transformedEmployee.employeeId} (${transformedEmployee.firstName} ${transformedEmployee.lastName})`);
+          console.log(
+            `Creating new employee ${transformedEmployee.employeeId} (${transformedEmployee.firstName} ${transformedEmployee.lastName})`
+          );
           await prisma.employee.create({
             data: {
               employeeId: transformedEmployee.employeeId,
@@ -67,8 +71,7 @@ export async function POST(request: NextRequest) {
           recordsAdded++;
         }
       }
-      
-      // Log the sync
+
       await prisma.employeeDataSync.create({
         data: {
           syncDate: new Date(),
@@ -80,7 +83,7 @@ export async function POST(request: NextRequest) {
           apiKeyExpiry: new Date("2025-12-31"),
         },
       });
-      
+
       return NextResponse.json({
         success: true,
         message: `Successfully synced ${employees.length} mock employees (${recordsAdded} added, ${recordsUpdated} updated)`,
@@ -90,7 +93,6 @@ export async function POST(request: NextRequest) {
         apiKeyStatus: "valid",
       });
     } else {
-      // Use the real sync function
       const result = await syncEmployeeData(forceFullSync);
       return NextResponse.json(result);
     }

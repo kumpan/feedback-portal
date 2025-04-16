@@ -27,31 +27,61 @@ export async function POST(request: NextRequest) {
 
     const uniqueCode = generateUniqueCode();
 
-    const surveyLink = await prisma.surveyLink.create({
-      data: {
-        uniqueCode,
-        clientName,
-        companyName,
-        createdById: session?.user?.id || null,
-        response: {
-          create: {
-            completed: false,
-          },
+    const createData: {
+      uniqueCode: string;
+      clientName: string;
+      companyName: string;
+      response: {
+        create: {
+          completed: boolean;
+        };
+      };
+      createdById?: string;
+    } = {
+      uniqueCode,
+      clientName,
+      companyName,
+      response: {
+        create: {
+          completed: false,
         },
       },
+    };
+
+    if (session?.user?.id) {
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (user) {
+        createData.createdById = session.user.id;
+      } else {
+        console.warn(`User with ID ${session.user.id} not found in database`);
+      }
+    } else {
+      console.warn("No user session found when creating survey link");
+    }
+
+    const surveyLink = await prisma.surveyLink.create({
+      data: createData,
       include: {
         response: true,
         createdBy: true,
       },
     });
 
-    const surveyUrl = `${request.nextUrl.origin}/?code=${uniqueCode}`;
+    const surveyUrl = `${request.nextUrl.origin}/survey/${surveyLink.uniqueCode}`;
 
     return NextResponse.json({ surveyLink, surveyUrl });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating survey link:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to create survey link" },
+      {
+        error: "Failed to create survey link",
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }
