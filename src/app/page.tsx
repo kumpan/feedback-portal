@@ -3,13 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, KeyboardEvent } from "react";
 import { Suspense } from "react";
-import { ChevronLeft, ArrowRight } from "lucide-react";
+import { ChevronLeft, ArrowRight, ArrowLeft } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import Image from "next/image";
+import { ProfileImage } from "@/components/ProfileImage";
 
 interface SurveyDetails {
   id: string;
@@ -53,11 +53,11 @@ function HomeContent() {
   const getQuestionType = (index: number, npsScore: string) => {
     const nps = npsScore ? parseInt(npsScore) : 0;
     const isHighNps = nps >= 7;
-    
+
     // For high NPS (≥7): NPS → Referral → Communication → Expectations → Feedback
     // For low NPS (<7): NPS → Communication → Expectations → Feedback
     if (index === 0) return "nps";
-    
+
     if (isHighNps) {
       if (index === 1) return "referral";
       if (index === 2) return "communication";
@@ -68,7 +68,7 @@ function HomeContent() {
       if (index === 2) return "expectations";
       if (index === 3) return "feedback";
     }
-    
+
     return "";
   };
 
@@ -89,44 +89,6 @@ function HomeContent() {
   const handlePrevQuestion = () => {
     if (questionIndex > 0) {
       setQuestionIndex(questionIndex - 1);
-    }
-  };
-
-  useEffect(() => {
-    const storedSurveyCode = localStorage.getItem("surveyCode");
-
-    if (surveyCode) {
-      localStorage.setItem("surveyCode", surveyCode);
-      const updatedUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, updatedUrl);
-      fetchSurveyDetails(surveyCode);
-    } else if (storedSurveyCode) {
-      fetchSurveyDetails(storedSurveyCode);
-    } else {
-      setLoading(false);
-    }
-  }, [surveyCode]);
-
-  const fetchSurveyDetails = async (code: string) => {
-    try {
-      const response = await fetch(`/api/survey-links?code=${code}`);
-      if (!response.ok) {
-        throw new Error("Invalid survey link");
-      }
-
-      const data = await response.json();
-      setSurveyDetails(data.surveyLink);
-
-      if (data.surveyLink.response?.completed) {
-        setErrorMessage(
-          "You have already submitted this survey. You can update your responses if you wish."
-        );
-      }
-    } catch (error) {
-      setErrorMessage("The survey link is invalid or has expired");
-      console.error(error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -153,6 +115,81 @@ function HomeContent() {
       name === "expectationMet"
     ) {
       setTimeout(() => handleNextQuestion(), 500);
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+
+      if (
+        event.target instanceof HTMLInputElement &&
+        event.target.type === "radio"
+      ) {
+        event.target.checked = true;
+        const name = event.target.name;
+        const value = event.target.value;
+
+        if (name === "expectationMet") {
+          setInputData({
+            ...inputData,
+            [name]: value === "true" ? true : value === "false" ? false : null,
+          });
+        } else {
+          setInputData({
+            ...inputData,
+            [name]: value,
+          });
+        }
+
+        if (
+          name === "nps" ||
+          name === "communication" ||
+          name === "expectationMet"
+        ) {
+          setTimeout(() => handleNextQuestion(), 500);
+        }
+      } else if (questionIndex === totalQuestions - 1) {
+        handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
+      } else {
+        handleNextQuestion();
+      }
+    }
+
+    if (
+      (event.key === "ArrowLeft" ||
+        event.key === "ArrowRight" ||
+        event.key === "ArrowUp" ||
+        event.key === "ArrowDown") &&
+      event.target instanceof HTMLInputElement &&
+      event.target.type === "radio"
+    ) {
+      event.preventDefault();
+
+      const radioButtons = Array.from(
+        document.querySelectorAll(
+          `input[type="radio"][name="${event.target.name}"]`
+        )
+      ) as HTMLInputElement[];
+
+      const currentIndex = radioButtons.findIndex(
+        (radio) => radio === event.target
+      );
+      let newIndex = currentIndex;
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        newIndex = Math.max(0, currentIndex - 1);
+      } else if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        newIndex = Math.min(radioButtons.length - 1, currentIndex + 1);
+      }
+
+      if (newIndex !== currentIndex) {
+        radioButtons[newIndex].focus();
+      }
     }
   };
 
@@ -200,6 +237,47 @@ function HomeContent() {
 
   const { data: session } = useSession();
 
+  const highResImage =
+    session?.user?.image?.replace(/=s\d+-c$/, "=s400-c") || "";
+
+  useEffect(() => {
+    const storedSurveyCode = localStorage.getItem("surveyCode");
+
+    if (surveyCode) {
+      localStorage.setItem("surveyCode", surveyCode);
+      const updatedUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, updatedUrl);
+      fetchSurveyDetails(surveyCode);
+    } else if (storedSurveyCode) {
+      fetchSurveyDetails(storedSurveyCode);
+    } else {
+      setLoading(false);
+    }
+  }, [surveyCode]);
+
+  const fetchSurveyDetails = async (code: string) => {
+    try {
+      const response = await fetch(`/api/survey-links?code=${code}`);
+      if (!response.ok) {
+        throw new Error("Invalid survey link");
+      }
+
+      const data = await response.json();
+      setSurveyDetails(data.surveyLink);
+
+      if (data.surveyLink.response?.completed) {
+        setErrorMessage(
+          "You have already submitted this survey. You can update your responses if you wish."
+        );
+      }
+    } catch (error) {
+      setErrorMessage("The survey link is invalid or has expired");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return <></>;
   }
@@ -236,30 +314,6 @@ function HomeContent() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
-      {session?.user && (
-        <div className="fixed top-0 left-0 right-0 border-b">
-          <div className="max-w-5xl mx-auto px-4 py-2 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {session.user.image && (
-                <Image
-                  src={session.user.image}
-                  alt={session.user.name || "User"}
-                  width={40}
-                  height={40}
-                  className="rounded-lg"
-                />
-              )}
-              <span className="text-lg font-medium">{session.user.name}</span>
-            </div>
-            <Button asChild className="gap-2">
-              <Link href="/dashboard">
-                Dashboard
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      )}
       <section className="w-full max-w-xl">
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl mb-4">
@@ -324,7 +378,11 @@ function HomeContent() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full"
+          onKeyDown={handleKeyDown}
+        >
           <div className="relative min-h-56 md:min-h-44">
             <AnimatePresence mode="wait">
               {getQuestionType(questionIndex, inputData.nps) === "nps" && (
@@ -376,7 +434,7 @@ function HomeContent() {
                       >
                         <label
                           htmlFor={`nps-${i}`}
-                          className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                          className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors focus-within:ring-ring/50 focus-within:ring-[3px] focus-within:ring-offset-2"
                         >
                           <input
                             type="radio"
@@ -420,11 +478,19 @@ function HomeContent() {
                     placeholder="Skriv ditt svar..."
                     value={inputData.potentialReferral}
                     onChange={handleInputChange}
+                    className="focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2 focus-visible:border-ring"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.shiftKey) {
+                        e.preventDefault();
+                        handleNextQuestion();
+                      }
+                    }}
                   />
                 </motion.div>
               )}
 
-              {getQuestionType(questionIndex, inputData.nps) === "communication" && (
+              {getQuestionType(questionIndex, inputData.nps) ===
+                "communication" && (
                 <motion.div
                   key="communication-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -477,7 +543,7 @@ function HomeContent() {
                       >
                         <label
                           htmlFor={`com-${i + 1}`}
-                          className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                          className="flex flex-col justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors focus-within:ring-ring/50 focus-within:ring-[3px] focus-within:ring-offset-2"
                         >
                           <input
                             type="radio"
@@ -503,7 +569,8 @@ function HomeContent() {
                 </motion.div>
               )}
 
-              {getQuestionType(questionIndex, inputData.nps) === "expectations" && (
+              {getQuestionType(questionIndex, inputData.nps) ===
+                "expectations" && (
                 <motion.div
                   key="expectation-question"
                   initial={{ opacity: 0, y: 20 }}
@@ -554,7 +621,7 @@ function HomeContent() {
                     >
                       <label
                         htmlFor="expectation-under"
-                        className="flex justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                        className="flex justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors focus-within:ring-ring/50 focus-within:ring-[3px] focus-within:ring-offset-2"
                       >
                         <input
                           type="radio"
@@ -585,7 +652,7 @@ function HomeContent() {
                     >
                       <label
                         htmlFor="expectation-over"
-                        className="flex justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors"
+                        className="flex justify-center items-center w-full py-3 rounded bg-primary-80 hover:bg-primary-60 active:bg-primary-15 active:text-primary-90 cursor-pointer has-[:checked]:bg-primary-15 has-[:checked]:text-primary-90 transition-colors focus-within:ring-ring/50 focus-within:ring-[3px] focus-within:ring-offset-2"
                       >
                         <input
                           type="radio"
@@ -627,6 +694,13 @@ function HomeContent() {
                     placeholder="Skriv ditt svar..."
                     value={inputData.feedback}
                     onChange={handleInputChange}
+                    className="focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2 focus-visible:border-ring"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.shiftKey) {
+                        e.preventDefault();
+                        handleNextQuestion();
+                      }
+                    }}
                   />
                 </motion.div>
               )}
@@ -638,13 +712,18 @@ function HomeContent() {
               size="lg"
               onClick={handlePrevQuestion}
               disabled={questionIndex === 0}
-              className="gap-2"
+              className="gap-2 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
             {questionIndex === totalQuestions - 1 ? (
-              <Button type="submit" disabled={loading} size="lg">
+              <Button
+                type="submit"
+                disabled={loading}
+                size="lg"
+                className="focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2"
+              >
                 {loading ? "Skickar..." : "Skicka feedback"}
               </Button>
             ) : (
@@ -655,7 +734,7 @@ function HomeContent() {
                   handleNextQuestion();
                 }}
                 size="lg"
-                className="gap-2"
+                className="gap-2 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2"
               >
                 Nästa <ArrowRight className="h-4 w-4" />
               </Button>
@@ -663,6 +742,29 @@ function HomeContent() {
           </div>
         </form>
       </section>
+      {session?.user && (
+        <div className="flex fixed top-0 left-0 right-0 justify-center border-b bg-primary-90">
+          <div className="w-full max-w-5xl px-4 md:px-8 flex items-center justify-between gap-4 py-4">
+            <Button
+              asChild
+              className="gap-2 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2"
+            >
+              <Link href="/dashboard">
+                <ArrowLeft className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
+            <div className="flex items-center gap-2">
+              {session.user.image && (
+                <ProfileImage
+                  src={highResImage}
+                  alt={session?.user?.name ?? "User profile picture"}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
