@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const surveyUrl = `${request.nextUrl.origin}/survey/${surveyLink.uniqueCode}`;
+    const surveyUrl = `${request.nextUrl.origin}/?code=${surveyLink.uniqueCode}`;
 
     return NextResponse.json({ surveyLink, surveyUrl });
   } catch (error: unknown) {
