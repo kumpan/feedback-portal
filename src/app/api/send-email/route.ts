@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { EmailTemplate } from "@/components/emails/SurveyLinkEmail";
+import EmailTemplate from "@/components/emails/SurveyLinkEmail";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
@@ -23,16 +23,18 @@ export async function POST(request: NextRequest) {
     const senderName = session?.user?.name || "Kumpan Feedback";
     const senderEmail = process.env.RESEND_FROM_EMAIL || "info@kumpan.se";
 
+    const emailProps = {
+      clientName,
+      surveyUrl,
+      senderName: session?.user?.name || "Kumpan",
+      senderImage: session?.user?.image || null,
+    };
+
     const { data, error } = await resend.emails.send({
       from: `${senderName} <${senderEmail}>`,
       to: [clientEmail],
-      subject: `Hej ${clientName} 👋, kan du hjälpa oss bli bättre?`,
-      react: EmailTemplate({
-        clientName,
-        companyName,
-        surveyUrl,
-        senderName: session?.user?.name || "Kumpan",
-      }),
+      subject: `Hej ${clientName.split(" ")[0]} 👋, kan du hjälpa oss bli bättre?`,
+      react: EmailTemplate(emailProps),
     });
 
     if (error) {
@@ -68,7 +70,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, data });
   } catch (error: unknown) {
     console.error("Error sending email:", error);
-    // Provide more specific error messages based on the error type
     let errorMessage = "Gick inte att skicka e-post";
 
     if (error instanceof Error) {

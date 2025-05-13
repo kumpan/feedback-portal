@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, AlertCircle, Loader } from "lucide-react";
+import { CheckCircle, AlertCircle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { useSession } from "next-auth/react";
 import { ProfileImage } from "@/components/ProfileImage";
@@ -72,7 +72,7 @@ export default function GenerateLink() {
           : "Gick inte att generera länk";
 
       setError(errorMessage);
-      setGeneratedLink("error"); // Set a dummy value to show the error container
+      setGeneratedLink("error");
       console.error("Error med skapandet av länk:", err);
     } finally {
       setIsLoading(false);
@@ -80,10 +80,9 @@ export default function GenerateLink() {
   };
 
   const sendEmailWithLink = async (surveyUrl: string) => {
-    // Set all states at once to prevent flickering
     setIsSendingEmail(true);
     setEmailSent(false);
-    setError(""); // Clear any previous errors
+    setError("");
 
     try {
       const response = await fetch("/api/send-email", {
