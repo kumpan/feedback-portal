@@ -41,8 +41,8 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
           <Img
             src={`${process.env.NEXT_PUBLIC_URL || "https://feedback.kumpan.se"}/images/kumpan-logo.png`}
             alt="Kumpan Logo"
-            width="150"
-            height="40"
+            width="72"
+            height="72"
             style={logo}
           />
           <Heading style={heading}>Hej {clientFirstName} 👋</Heading>
@@ -114,8 +114,9 @@ const logo = {
 
 const heading = {
   color: "#451484",
-  fontSize: "32px",
+  fontSize: "40px",
   marginBottom: "16px",
+  marginTop: "16px",
   textAlign: "center" as const,
   fontWeight: "normal",
 };
