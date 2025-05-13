@@ -39,7 +39,7 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
       <Body style={main}>
         <Container style={container}>
           <Img
-            src={`${process.env.NEXT_PUBLIC_URL || "https://feedback.kumpan.se"}/images/kumpan-logo.svg`}
+            src={`${process.env.NEXT_PUBLIC_URL || "https://feedback.kumpan.se"}/images/kumpan-logo.png`}
             alt="Kumpan Logo"
             width="150"
             height="40"
