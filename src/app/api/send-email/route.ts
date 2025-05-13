@@ -1,3 +1,4 @@
+import React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import EmailTemplate from "@/components/emails/SurveyLinkEmail";
@@ -30,11 +31,13 @@ export async function POST(request: NextRequest) {
       senderImage: session?.user?.image || null,
     };
 
+    const emailComponent = React.createElement(EmailTemplate, emailProps);
+
     const { data, error } = await resend.emails.send({
       from: `${senderName} <${senderEmail}>`,
       to: [clientEmail],
       subject: `Hej ${clientName.split(" ")[0]} 👋, kan du hjälpa oss bli bättre?`,
-      react: EmailTemplate(emailProps),
+      react: emailComponent,
     });
 
     if (error) {

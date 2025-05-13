@@ -6,12 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
-import { useSession } from "next-auth/react";
-import { ProfileImage } from "@/components/ProfileImage";
 import { cn } from "@/lib/utils";
 
 export default function GenerateLink() {
-  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [companyName, setCompanyName] = useState("");
