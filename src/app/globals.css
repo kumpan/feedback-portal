@@ -51,14 +51,15 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   --radius-5xl: calc(var(--radius) + 20px);
+  --radius-6xl: calc(var(--radius) + 24px);
 }
 
 :root {

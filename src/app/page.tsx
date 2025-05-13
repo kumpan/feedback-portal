@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ProfileImage } from "@/components/ProfileImage";
+import Logo from "@/components/logo";
 
 interface SurveyDetails {
   id: string;
@@ -313,8 +314,11 @@ function HomeContent() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
+    <main className="flex min-h-screen flex-col items-center justify-center px-4 pt-8 pb-12 md:px-24">
       <section className="w-full max-w-xl">
+        <div className="flex items-center justify-center mb-8">
+          <Logo className="size-14 md:size-16" />
+        </div>
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl mb-4">
             Hej{" "}

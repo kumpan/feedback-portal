@@ -134,7 +134,10 @@ export function Modal({
                 </button>
               </div>
             </motion.div>
-            <motion.div className="p-4 md:p-6" variants={childVariants}>
+            <motion.div
+              className="p-4 md:p-6 max-h-[72vh] overflow-y-auto"
+              variants={childVariants}
+            >
               {children}
             </motion.div>
           </motion.div>
