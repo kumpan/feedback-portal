@@ -41,8 +41,8 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
           <Img
             src={`${process.env.NEXT_PUBLIC_URL || "https://feedback.kumpan.se"}/images/kumpan-logo.png`}
             alt="Kumpan Logo"
-            width="72"
-            height="72"
+            width="56"
+            height="56"
             style={logo}
           />
           <Heading style={heading}>Hej {clientFirstName} 👋</Heading>
@@ -95,15 +95,15 @@ const main = {
   backgroundColor: "#F0F0FE",
   fontFamily:
     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-  padding: "60px 0",
+  padding: "60px 8px",
 };
 
 const container = {
   backgroundColor: "#FAFAFF",
   border: "1px solid #CDC4E5",
-  borderRadius: "24px",
+  borderRadius: "20px",
   margin: "0 auto",
-  padding: "48px",
+  padding: "44px",
   maxWidth: "640px",
 };
 
@@ -114,7 +114,7 @@ const logo = {
 
 const heading = {
   color: "#451484",
-  fontSize: "40px",
+  fontSize: "44px",
   marginBottom: "16px",
   marginTop: "16px",
   textAlign: "center" as const,
