@@ -34,10 +34,26 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
 
   return (
     <Html>
-      <Head />
+      <Head>
+        <style type="text/css">
+          {`
+            @media only screen and (max-width: 648px) {
+              .mobile-container {
+                background-color: #F0F0FE !important;
+                border: 0px solid #CDC4E5 !important;
+                border-radius: 0px !important;
+                padding: 20px !important;
+              }
+              .mobile-main {
+                padding: 32px 0px !important;
+              }
+            }
+          `}
+        </style>
+      </Head>
       <Preview>{previewText}</Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Body style={main} className="mobile-main">
+        <Container style={container} className="mobile-container">
           <Img
             src={`${process.env.NEXT_PUBLIC_URL || "https://feedback.kumpan.se"}/images/kumpan-logo.png`}
             alt="Kumpan Logo"
@@ -95,7 +111,7 @@ const main = {
   backgroundColor: "#F0F0FE",
   fontFamily:
     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-  padding: "60px 8px",
+  padding: "60px 16px",
 };
 
 const container = {
