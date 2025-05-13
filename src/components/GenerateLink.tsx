@@ -4,17 +4,23 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Check } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { useSession } from "next-auth/react";
+import { ProfileImage } from "@/components/ProfileImage";
+import { cn } from "@/lib/utils";
 
 export default function GenerateLink() {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   useEffect(() => {
     const button = document.getElementById("generate-link-button");
@@ -30,8 +36,9 @@ export default function GenerateLink() {
   }, []);
 
   const handleGenerateLink = async () => {
-    if (!clientName || !companyName) {
-      setError("Please fill in both fields");
+    if (!clientName || !companyName || !clientEmail) {
+      setError("Fyll i alla fält");
+      setGeneratedLink("error");
       return;
     }
 
@@ -49,47 +56,106 @@ export default function GenerateLink() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to generate link");
+        throw new Error(errorData.error || "Gick inte att generera länk");
       }
 
       const data = await response.json();
       setGeneratedLink(data.surveyUrl);
+
+      if (clientEmail) {
+        await sendEmailWithLink(data.surveyUrl);
+      }
     } catch (err: unknown) {
-      setError(
+      const errorMessage =
         typeof err === "object" && err !== null && "message" in err
           ? (err.message as string)
-          : "An error occurred while generating the link"
-      );
-      console.error("Error creating survey link:", err);
+          : "Gick inte att generera länk";
+
+      setError(errorMessage);
+      setGeneratedLink("error"); // Set a dummy value to show the error container
+      console.error("Error med skapandet av länk:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedLink);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+  const sendEmailWithLink = async (surveyUrl: string) => {
+    // Set all states at once to prevent flickering
+    setIsSendingEmail(true);
+    setEmailSent(false);
+    setError(""); // Clear any previous errors
+
+    try {
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clientName,
+          companyName,
+          clientEmail,
+          surveyUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Gick inte att skicka e-post");
+      }
+
+      setEmailSent(true);
+    } catch (err: unknown) {
+      console.error("Error sending email:", err);
+      let errorMessage = "Gick inte att skicka e-post";
+
+      if (typeof err === "object" && err !== null) {
+        if ("message" in err) {
+          const message = err.message as string;
+
+          if (message.includes("API key")) {
+            errorMessage = "Saknar API-nyckel för Resend";
+          } else if (message.includes("from") || message.includes("sender")) {
+            errorMessage = "Ogiltig avsändaradress";
+          } else if (message.includes("to") || message.includes("recipient")) {
+            errorMessage = "Ogiltig mottagaradress";
+          } else if (
+            message.includes("network") ||
+            message.includes("connect")
+          ) {
+            errorMessage = "Nätverksfel vid anslutning till e-posttjänsten";
+          } else {
+            errorMessage = message;
+          }
+        }
+      }
+
+      setError(errorMessage);
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const closeModal = () => {
     setIsOpen(false);
     setClientName("");
     setCompanyName("");
+    setClientEmail("");
     setGeneratedLink("");
     setError("");
+    setEmailSent(false);
   };
 
   return (
     <>
       <Button id="generate-link-button" size="lg">
-        Generera länk
+        Skicka enkät
       </Button>
 
       <Modal
         isOpen={isOpen}
         onClose={closeModal}
-        title="Generera länk"
+        title="Skicka enkät till kund"
         className="max-w-lg"
       >
         <div className="space-y-4">
@@ -104,6 +170,7 @@ export default function GenerateLink() {
             <Input
               id="clientName"
               value={clientName}
+              required
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Emilito Doe"
             />
@@ -114,43 +181,94 @@ export default function GenerateLink() {
             <Input
               id="companyName"
               value={companyName}
+              required
               onChange={(e) => setCompanyName(e.target.value)}
               placeholder="Kumpan"
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <div className="space-y-2">
+            <Label htmlFor="clientEmail">Kundens e-postadress</Label>
+            <Input
+              id="clientEmail"
+              type="email"
+              required
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+              placeholder="client@example.com"
+            />
+          </div>
 
-          {!generatedLink ? (
-            <Button
-              onClick={handleGenerateLink}
-              className="w-full mt-2"
-              disabled={isLoading}
-              size="lg"
-            >
-              {isLoading ? "Genererar..." : "Generera länk"}
-            </Button>
-          ) : (
-            <div className="space-y-2">
-              <Label>Kundens länk</Label>
-              <div className="flex items-center gap-2">
-                <Input value={generatedLink} readOnly className="flex-1" />
-                <Button onClick={copyToClipboard} variant="outline" size="lg">
-                  {isCopied ? <Check size={16} /> : <Copy size={16} />}
-                </Button>
-              </div>
+          {!generatedLink || generatedLink === "error" ? (
+            <>
               <Button
-                onClick={() => {
-                  setGeneratedLink("");
-                  setClientName("");
-                  setCompanyName("");
-                }}
-                variant="outline"
-                className="w-full mt-1"
+                onClick={handleGenerateLink}
+                className="w-full mt-2"
+                disabled={isLoading}
                 size="lg"
               >
-                Generera ny länk
+                {isLoading ? "Genererar..." : "Skicka enkät"}
               </Button>
+
+              {error && generatedLink === "error" && (
+                <div className="mt-4">
+                  <div className="flex">
+                    <div className="flex flex-row items-center gap-4 w-full p-1 rounded-lg bg-red-100 text-red-800">
+                      <div className="p-4 bg-red-200 rounded-md">
+                        <AlertCircle />
+                      </div>
+                      <p className="w-full">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="space-y-2">
+              {clientEmail && (
+                <div className="mt-4">
+                  <div className="flex">
+                    <div
+                      className={cn(
+                        "flex flex-row items-center gap-4 w-full p-1 rounded-lg",
+                        emailSent ? "bg-primary-80 text-primary-20" : "",
+                        error && !emailSent ? "bg-red-100 text-red-800" : ""
+                      )}
+                    >
+                      {emailSent && (
+                        <div className="p-4 bg-primary-90 rounded-md">
+                          <CheckCircle />
+                        </div>
+                      )}
+                      {error && !emailSent && (
+                        <div className="p-4 bg-red-200 rounded-md">
+                          <AlertCircle />
+                        </div>
+                      )}
+
+                      <p className="w-full">
+                        {emailSent
+                          ? `Enkät skickad till ${clientEmail}`
+                          : error
+                            ? `${error}`
+                            : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  {!emailSent && (
+                    <Button
+                      onClick={() => sendEmailWithLink(generatedLink)}
+                      variant="outline"
+                      size="lg"
+                      className="mt-2 w-full"
+                      disabled={isSendingEmail}
+                    >
+                      {isSendingEmail ? "Skickar e-post..." : "Försök igen"}
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

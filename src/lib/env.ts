@@ -21,7 +21,8 @@ export function validateEnv() {
     "GOOGLE_CLIENT_SECRET",
     "HAILEY_HR_API_KEY",
     "HAILEY_HR_ACCESS_TOKEN",
-    "HAILEY_HR_API_URL",
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL",
   ];
 
   const missingEnvVars = requiredEnvVars.filter(
