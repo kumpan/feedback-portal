@@ -63,10 +63,9 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
           />
           <Heading style={heading}>Hej {clientFirstName} 👋</Heading>
           <Text style={paragraph}>
-            Du arbetade nyligen med {senderFirstName} på Kumpan, och vi
+            Du arbetade nyligen med mig, {senderFirstName}, på Kumpan, och vi
             värdesätter din feedback högt. Kan du svara på enkäten om hur du
-            upplevde vårt samarbete tillsammans? Det tar bara en minut eller
-            två.
+            upplevde vårt samarbete tillsammans? Det tar bara nåon minut.
           </Text>
           <Section style={buttonContainer}>
             <Button style={button} href={surveyUrl}>
@@ -99,7 +98,7 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
                 </Row>
               </Section>
             )}
-            <Text style={footer}>Skickad av {senderName} från Kumpan</Text>
+            <Text style={footer}>Skickad av {senderName}</Text>
           </Section>
         </Container>
       </Body>
