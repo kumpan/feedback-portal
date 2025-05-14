@@ -305,8 +305,7 @@ function HomeContent() {
         <div className="w-full max-w-md p-6 md:p-8 text-center items-center">
           <h1 className="text-3xl font-medium mb-1">Tack för din feedback!</h1>
           <p className="opacity-70">
-            Dina svar har skickats in. Vi uppskattar att du tog dig tid att
-            svara på vår enkät.
+            Dina svar har skickats in. Tack för att du tog dig tid att svara!
           </p>
         </div>
       </main>
@@ -353,13 +352,13 @@ function HomeContent() {
               <>
                 Du arbetade nyligen med{" "}
                 {extractFirstName(surveyDetails?.createdBy?.name)} på Kumpan,
-                och vi värdesätter din feedback högt. Hur upplevde du ert
-                samarbetet tillsammans?
+                och vi värdesätter din feedback högt. Hur upplevde du vårt
+                samarbete?
               </>
             ) : (
               <>
                 Vi på Kumpan värdesätter din feedback högt. Hur upplevde du vårt
-                samarbete tillsammans?
+                samarbete?
               </>
             )}
           </p>
@@ -475,7 +474,8 @@ function HomeContent() {
                   className="space-y-4 pb-4"
                 >
                   <h2 className="text-xl mb-4 leading-tight md:text-2xl">
-                    Vilket annat bolag tror du kan ta nytta av våra tjänster?
+                    Vilket bolag i ditt nätverk tror du skulle dra nytta av
+                    Kumpans tjänster?
                   </h2>
                   <Textarea
                     name="potentialReferral"

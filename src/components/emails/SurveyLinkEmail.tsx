@@ -65,7 +65,7 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
           <Text style={paragraph}>
             Du arbetade nyligen med mig, {senderFirstName}, på Kumpan, och vi
             värdesätter din feedback högt. Kan du svara på enkäten om hur du
-            upplevde vårt samarbete tillsammans? Det tar bara nåon minut.
+            upplevde vårt samarbete tillsammans? Det tar bara någon minut.
           </Text>
           <Section style={buttonContainer}>
             <Button style={button} href={surveyUrl}>
