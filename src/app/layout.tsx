@@ -8,11 +8,11 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-const APP_NAME = "Feedback Portal";
-const APP_DEFAULT_TITLE = "Feedback Portal | Kumpan";
+const APP_NAME = "Feedback | Kumpan";
+const APP_DEFAULT_TITLE = "Lämna din feedback | Kumpan";
 const APP_TITLE_TEMPLATE = "%s | Kumpan";
 const APP_DESCRIPTION =
-  "Help us here at Kumpan to improve. We would love to collect insights and feedback from our beloved clients.";
+  "Hjälp oss på Kumpan att bli bättre! Vi vill gärna höra dina tankar och upplevelser – din röst är viktig för oss.";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
