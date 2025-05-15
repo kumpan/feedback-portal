@@ -175,7 +175,7 @@ const hr = {
 };
 
 const footer = {
-  color: "#1E0C4F",
+  color: "#CDC4E5",
   fontSize: "16px",
   marginTop: "12px",
   textAlign: "center" as const,

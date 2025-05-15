@@ -22,6 +22,7 @@ interface SurveyResponsesListProps {
     createdAt: Date;
     clientName: string;
     companyName: string;
+    clientEmail?: string | null;
     uniqueCode?: string;
     createdBy?: {
       name: string | null;
@@ -495,7 +496,14 @@ export default function SurveyResponsesList({
                     },
                   }}
                 >
-                  <h3 className="font-medium mb-1">Kundens länk:</h3>
+                  <div className="flex justify-between items-center gap-2">
+                    <h3 className="font-medium mb-1">Kundens länk:</h3>
+                    {selectedResponse.clientEmail && (
+                      <p className="text-sm truncate">
+                        Skickad till {selectedResponse.clientEmail}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <Input value={surveyUrl} readOnly className="flex-1" />
                     <motion.div

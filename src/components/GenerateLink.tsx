@@ -48,7 +48,7 @@ export default function GenerateLink() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ clientName, companyName }),
+        body: JSON.stringify({ clientName, companyName, clientEmail }),
       });
 
       if (!response.ok) {
