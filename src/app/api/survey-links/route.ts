@@ -14,7 +14,7 @@ function generateUniqueCode(length = 6) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { clientName, companyName } = await request.json();
+    const { clientName, companyName, clientEmail } = await request.json();
 
     const session = await getServerSession(authOptions);
 
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
       uniqueCode: string;
       clientName: string;
       companyName: string;
+      clientEmail?: string;
       response: {
         create: {
           completed: boolean;
@@ -47,6 +48,10 @@ export async function POST(request: NextRequest) {
         },
       },
     };
+    
+    if (clientEmail) {
+      createData.clientEmail = clientEmail;
+    }
 
     if (session?.user?.id) {
       const user = await prisma.user.findUnique({
