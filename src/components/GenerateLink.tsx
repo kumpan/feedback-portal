@@ -168,7 +168,7 @@ export default function GenerateLink() {
               value={clientName}
               required
               onChange={(e) => setClientName(e.target.value)}
-              placeholder="Emilito Doe"
+              placeholder="Emilia"
             />
           </div>
 
