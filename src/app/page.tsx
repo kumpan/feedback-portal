@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useState, KeyboardEvent } from "react";
 import { Suspense } from "react";
 import { ChevronLeft, ArrowRight, ArrowLeft } from "lucide-react";
@@ -344,7 +344,7 @@ function HomeContent() {
 
         <div className="mb-10">
           <div className="h-2 bg-primary-80/30 rounded-full w-full">
-            <motion.div
+            <m.div
               className="h-2 bg-primary rounded-full"
               initial={{ width: 0 }}
               animate={{
@@ -355,7 +355,7 @@ function HomeContent() {
                   damping: 20,
                 },
               }}
-            ></motion.div>
+            ></m.div>
           </div>
         </div>
 
@@ -367,7 +367,7 @@ function HomeContent() {
           <div className="relative min-h-56 md:min-h-44">
             <AnimatePresence mode="wait">
               {getQuestionType(questionIndex, inputData.nps) === "nps" && (
-                <motion.div
+                <m.div
                   key="nps-question"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -383,7 +383,7 @@ function HomeContent() {
                     vän eller kollega?
                   </h2>
 
-                  <motion.div
+                  <m.div
                     className="flex gap-1"
                     variants={{
                       hidden: { opacity: 0 },
@@ -398,7 +398,7 @@ function HomeContent() {
                     animate="visible"
                   >
                     {Array.from({ length: 11 }, (_, i) => (
-                      <motion.div
+                      <m.div
                         className="w-full"
                         key={i}
                         variants={{
@@ -428,19 +428,19 @@ function HomeContent() {
                           />
                           <p className="text-lg md:text-xl">{i}</p>
                         </label>
-                      </motion.div>
+                      </m.div>
                     ))}
-                  </motion.div>
+                  </m.div>
 
                   <div className="flex justify-between w-full opacity-70">
                     <p className="text-sm">Inte alls troligt</p>
                     <p className="text-sm">Väldigt troligt</p>
                   </div>
-                </motion.div>
+                </m.div>
               )}
 
               {getQuestionType(questionIndex, inputData.nps) === "referral" && (
-                <motion.div
+                <m.div
                   key="referral-question"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -468,12 +468,12 @@ function HomeContent() {
                       }
                     }}
                   />
-                </motion.div>
+                </m.div>
               )}
 
               {getQuestionType(questionIndex, inputData.nps) ===
                 "communication" && (
-                <motion.div
+                <m.div
                   key="communication-question"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -493,7 +493,7 @@ function HomeContent() {
                       : "vår kommunikation genom projektet?"}
                   </h2>
 
-                  <motion.div
+                  <m.div
                     className="flex gap-1"
                     variants={{
                       hidden: { opacity: 0 },
@@ -508,7 +508,7 @@ function HomeContent() {
                     animate="visible"
                   >
                     {Array.from({ length: 5 }, (_, i) => (
-                      <motion.div
+                      <m.div
                         className="w-full"
                         key={i + 1}
                         variants={{
@@ -540,20 +540,20 @@ function HomeContent() {
                           />
                           <p className="text-lg md:text-xl">{i + 1}</p>
                         </label>
-                      </motion.div>
+                      </m.div>
                     ))}
-                  </motion.div>
+                  </m.div>
 
                   <div className="flex justify-between w-full opacity-70">
                     <p className="text-sm">Dålig</p>
                     <p className="text-sm">Utmärkt</p>
                   </div>
-                </motion.div>
+                </m.div>
               )}
 
               {getQuestionType(questionIndex, inputData.nps) ===
                 "expectations" && (
-                <motion.div
+                <m.div
                   key="expectation-question"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -573,7 +573,7 @@ function HomeContent() {
                       : "vi som förväntat?"}
                   </h2>
 
-                  <motion.div
+                  <m.div
                     className="flex gap-1 flex-col-reverse md:flex-row"
                     variants={{
                       hidden: { opacity: 0 },
@@ -587,7 +587,7 @@ function HomeContent() {
                     initial="hidden"
                     animate="visible"
                   >
-                    <motion.div
+                    <m.div
                       className="w-full"
                       variants={{
                         hidden: { opacity: 0, y: 10 },
@@ -616,9 +616,9 @@ function HomeContent() {
                         />
                         <p className="text-lg md:text-xl">Under förväntan</p>
                       </label>
-                    </motion.div>
+                    </m.div>
 
-                    <motion.div
+                    <m.div
                       className="w-full"
                       variants={{
                         hidden: { opacity: 0, y: 10 },
@@ -647,13 +647,13 @@ function HomeContent() {
                         />
                         <p className="text-lg md:text-xl">Över förväntan</p>
                       </label>
-                    </motion.div>
-                  </motion.div>
-                </motion.div>
+                    </m.div>
+                  </m.div>
+                </m.div>
               )}
 
               {getQuestionType(questionIndex, inputData.nps) === "feedback" && (
-                <motion.div
+                <m.div
                   key="feedback-question"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -684,7 +684,7 @@ function HomeContent() {
                       }
                     }}
                   />
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>

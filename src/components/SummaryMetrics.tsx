@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SurveyData } from "@/app/actions/surveyActions";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { m, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 interface SummaryMetricsProps {
@@ -42,7 +42,7 @@ function AnimateNumber({
     }
   }, [count, value, duration]);
 
-  return <motion.span>{formattedValue}</motion.span>;
+  return <m.span>{formattedValue}</m.span>;
 }
 
 export function SummaryMetrics({ surveyData }: SummaryMetricsProps) {

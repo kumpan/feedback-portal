@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 type TabsContextType = {
   activeTab: string;
@@ -111,7 +111,7 @@ export function TabsTrigger({
       }}
     >
       {isActive && (
-        <motion.span
+        <m.span
           layoutId="tabBackground"
           className="absolute inset-0 z-0 bg-background"
           style={{ borderRadius: 6 }}

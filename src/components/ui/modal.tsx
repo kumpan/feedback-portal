@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 interface ModalProps {
   isOpen: boolean;
@@ -98,7 +98,7 @@ export function Modal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           onClick={handleBackdropClick}
           initial={{ opacity: 0 }}
@@ -106,7 +106,7 @@ export function Modal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <motion.div
+          <m.div
             ref={modalRef}
             className={cn(
               "w-full max-w-lg rounded-2xl bg-background",
@@ -118,7 +118,7 @@ export function Modal({
             animate="visible"
             exit="exit"
           >
-            <motion.div
+            <m.div
               className="flex items-center justify-between border-b pl-4 pr-2 md:pl-6 md:pr-3 py-2 md:py-3"
               variants={childVariants}
             >
@@ -133,15 +133,15 @@ export function Modal({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-            </motion.div>
-            <motion.div
+            </m.div>
+            <m.div
               className="p-4 md:p-6 max-h-[72vh] overflow-y-auto"
               variants={childVariants}
             >
               {children}
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            </m.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

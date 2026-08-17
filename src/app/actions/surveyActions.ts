@@ -109,6 +109,30 @@ export async function getSurveyData(timeFrame: string): Promise<SurveyData> {
   };
 }
 
+/**
+ * Cheap change-detection signal for the dashboard's live polling.
+ *
+ * One aggregate query instead of refetching the whole dataset every tick — the
+ * dashboard only pulls the full `getSurveyData` payload when this value moves.
+ * `count` catches creates and deletes, `latestUpdate` catches a client
+ * completing a survey (SurveyResponse.updatedAt is @updatedAt), and every
+ * survey link creates a SurveyResponse row, so both paths are covered.
+ */
+export async function getSurveyDataVersion(): Promise<{
+  count: number;
+  latestUpdate: string | null;
+}> {
+  const aggregate = await prisma.surveyResponse.aggregate({
+    _count: { _all: true },
+    _max: { updatedAt: true },
+  });
+
+  return {
+    count: aggregate._count._all,
+    latestUpdate: aggregate._max.updatedAt?.toISOString() ?? null,
+  };
+}
+
 export async function deleteSurveyLink(
   uniqueCode: string
 ): Promise<{ success: boolean; message: string }> {
