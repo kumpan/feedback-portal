@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ProfileImage } from "@/components/ProfileImage";
 import Logo from "@/components/logo";
+import { WavingHand } from "@/components/WavingHand";
 
 interface SurveyDetails {
   id: string;
@@ -322,30 +323,7 @@ function HomeContent() {
           <h1 className="text-4xl md:text-5xl mb-4">
             Hej{" "}
             {surveyDetails?.clientName ? ` ${surveyDetails.clientName}` : ""}
-            <motion.span
-              className="inline-block cursor-grab ml-2"
-              initial={{ rotate: 0 }}
-              animate={{
-                rotate: [0, 15, -15, 15, 0],
-                transition: {
-                  duration: 1.5,
-                  ease: "easeInOut",
-                  times: [0, 0.2, 0.5, 0.8, 1],
-                  repeat: 0,
-                  delay: 0.1,
-                },
-              }}
-              whileHover={{
-                scale: 1.2,
-                transition: {
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 25,
-                },
-              }}
-            >
-              👋
-            </motion.span>
+            <WavingHand className="ml-2" />
           </h1>
           <p className="text-lg leading-snug opacity-70">
             {surveyDetails ? (
