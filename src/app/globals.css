@@ -60,6 +60,35 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --radius-5xl: calc(var(--radius) + 20px);
   --radius-6xl: calc(var(--radius) + 24px);
+
+  --animate-wave: wave 2.6s ease-in-out 0.3s both;
+}
+
+@keyframes wave {
+  0% {
+    rotate: 0deg;
+  }
+  15% {
+    rotate: 14deg;
+  }
+  30% {
+    rotate: -10deg;
+  }
+  45% {
+    rotate: 12deg;
+  }
+  60% {
+    rotate: -6deg;
+  }
+  75% {
+    rotate: 6deg;
+  }
+  90% {
+    rotate: -2deg;
+  }
+  100% {
+    rotate: 0deg;
+  }
 }
 
 :root {

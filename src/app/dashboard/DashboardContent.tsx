@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { EmployeeMetrics } from "@/components/EmployeeMetrics";
 import EmployeeDataSync from "@/components/EmployeeDataSync";
+import { WavingHand } from "@/components/WavingHand";
 import {
   getEmployeeRetentionData,
   getEmployeeTrendData,
@@ -182,30 +183,7 @@ export default function DashboardContent({
                 {session.user?.name && (
                   <span>, {session.user.name.split(" ")[0]} </span>
                 )}
-                <motion.span
-                  className="inline-block cursor-grab"
-                  initial={{ rotate: 0 }}
-                  animate={{
-                    rotate: [0, 15, -15, 15, 0],
-                    transition: {
-                      duration: 1.5,
-                      ease: "easeInOut",
-                      times: [0, 0.2, 0.5, 0.8, 1],
-                      repeat: 0,
-                      delay: 0.1,
-                    },
-                  }}
-                  whileHover={{
-                    scale: 1.2,
-                    transition: {
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 25,
-                    },
-                  }}
-                >
-                  👋
-                </motion.span>
+                <WavingHand />
               </h1>
               <p className="text-lg max-w-lg leading-snug mt-2">
                 {positiveMessage}
