@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
+import { MotionProvider } from "@/components/MotionProvider";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -69,7 +70,9 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} font-sans selection:bg-foreground selection:text-background antialiased bg-primary-90 text-foreground overflow-y-auto scrollbar-gutter-stable`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <MotionProvider>{children}</MotionProvider>
+        </AuthProvider>
       </body>
     </html>
   );

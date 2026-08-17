@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmployeeRetentionData } from "@/app/actions/employeeActions";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { m, useMotionValue, useTransform, animate } from "framer-motion";
 import { Info } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import React, { useState } from "react";
@@ -45,7 +45,7 @@ function AnimateNumber({
     }
   }, [count, value, duration]);
 
-  return <motion.span>{formattedValue}</motion.span>;
+  return <m.span>{formattedValue}</m.span>;
 }
 
 const InfoButton = ({ onClick }: { onClick: () => void }) => (

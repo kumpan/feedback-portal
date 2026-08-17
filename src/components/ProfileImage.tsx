@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 interface ProfileImageProps {
@@ -11,7 +11,7 @@ interface ProfileImageProps {
 export function ProfileImage({ src, alt }: ProfileImageProps) {
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         initial={{ scale: 1.1, opacity: 0.5 }}
         animate={{
           scale: 1,
@@ -38,7 +38,7 @@ export function ProfileImage({ src, alt }: ProfileImageProps) {
             className="h-full w-full object-cover"
           />
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }

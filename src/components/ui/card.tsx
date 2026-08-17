@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion, AnimatePresence, HTMLMotionProps } from "framer-motion";
+import { m, AnimatePresence, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const springTransition = {
@@ -55,7 +55,7 @@ type MotionDivProps = HTMLMotionProps<"div">;
 function Card({ className, ...props }: MotionDivProps) {
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         data-slot="card"
         className={cn("bg-card flex flex-col gap-1 rounded-xl py-6", className)}
         variants={cardVariants}
@@ -70,7 +70,7 @@ function Card({ className, ...props }: MotionDivProps) {
 
 function CardHeader({ className, ...props }: MotionDivProps) {
   return (
-    <motion.div
+    <m.div
       data-slot="card-header"
       className={cn(
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-[data-slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-3",
@@ -84,7 +84,7 @@ function CardHeader({ className, ...props }: MotionDivProps) {
 
 function CardTitle({ className, ...props }: MotionDivProps) {
   return (
-    <motion.div
+    <m.div
       data-slot="card-title"
       className={cn("leading-none font-medium", className)}
       variants={itemVariants}
@@ -95,7 +95,7 @@ function CardTitle({ className, ...props }: MotionDivProps) {
 
 function CardDescription({ className, ...props }: MotionDivProps) {
   return (
-    <motion.div
+    <m.div
       data-slot="card-description"
       className={cn("text-muted-foreground text-sm", className)}
       variants={itemVariants}
@@ -106,7 +106,7 @@ function CardDescription({ className, ...props }: MotionDivProps) {
 
 function CardAction({ className, ...props }: MotionDivProps) {
   return (
-    <motion.div
+    <m.div
       data-slot="card-action"
       className={cn(
         "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
@@ -120,7 +120,7 @@ function CardAction({ className, ...props }: MotionDivProps) {
 
 function CardContent({ className, ...props }: MotionDivProps) {
   return (
-    <motion.div
+    <m.div
       data-slot="card-content"
       className={cn("px-6", className)}
       variants={itemVariants}
@@ -131,7 +131,7 @@ function CardContent({ className, ...props }: MotionDivProps) {
 
 function CardFooter({ className, ...props }: MotionDivProps) {
   return (
-    <motion.div
+    <m.div
       data-slot="card-footer"
       className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
       variants={itemVariants}

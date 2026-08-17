@@ -9,7 +9,7 @@ import {
   syncEmployeeData,
   getLastSyncInfo,
 } from "@/app/actions/employeeActions";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 
 interface EmployeeDataSyncProps {
@@ -84,7 +84,7 @@ export default function EmployeeDataSync({
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -173,6 +173,6 @@ export default function EmployeeDataSync({
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   );
 }
